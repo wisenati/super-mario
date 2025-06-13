@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Mario - Account Settings</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --dark-red: #d00000;
+        --white: #ffffff;
+        --light-gray: #f8f9fa;
+        --dark-gray: #333333;
+        --gold: #ffd700;
+        --light-red: rgba(230, 57, 70, 0.1);
+        --success-green: #27ae60;
+        --error-red: #e74c3c;
+        --primary-gradient: linear-gradient(135deg, #e63946 0%, #d00000 100%);
+        --glass-bg: rgba(255, 255, 255, 0.85);
+        --glass-border: rgba(255, 255, 255, 0.3);
+        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        overflow-x: hidden;
+        min-height: 100vh;
+        padding-bottom: 80px; /* Space for bottom nav */
+      }
+
+      /* Header Styles */
+      header {
+        background-color: var(--white);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+        padding: 15px 0;
+        transition: all 0.3s ease;
+      }
+
+      header.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo img {
+        width: 40px;
+        height: 40px;
+        animation: bounce 2s infinite;
+      }
+
+      .logo h1 {
+        color: var(--primary-red);
+        font-weight: 800;
+        font-size: 1.8rem;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--primary-gradient);
+        color: var(--white);
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn-primary:hover::before {
+        left: 100%;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--primary-red);
+        border: 2px solid var(--primary-red);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--primary-red);
+        color: var(--white);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--dark-gray);
+        cursor: pointer;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 100px 0 30px;
+      }
+
+      /* User Profile Section */
+      .profile-section {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background-color: var(--white);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background-color: var(--light-red);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-red);
+        font-size: 2.5rem;
+        font-weight: 700;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .profile-avatar:hover {
+        transform: translateY(-5px) rotate(5deg);
+        box-shadow: 0 10px 25px rgba(230, 57, 70, 0.3);
+      }
+
+      .profile-avatar::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          to bottom right,
+          rgba(255, 255, 255, 0.3),
+          rgba(255, 255, 255, 0)
+        );
+        transform: rotate(30deg);
+        animation: shine 3s infinite;
+      }
+
+      .profile-info {
+        flex: 1;
+      }
+
+      .profile-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+        color: var(--dark-gray);
+      }
+
+      .profile-phone {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .profile-stats {
+        display: flex;
+        gap: 15px;
+      }
+
+      .stat-item {
+        background-color: var(--light-gray);
+        border-radius: 10px;
+        padding: 10px 15px;
+        text-align: center;
+        min-width: 100px;
+        transition: all 0.3s ease;
+      }
+
+      .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.1);
+      }
+
+      .stat-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--primary-red);
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+        color: #666;
+      }
+
+      /* Account Details Section */
+      .account-details {
+        background-color: var(--white);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        animation: fadeIn 0.8s ease-out 0.2s forwards;
+        opacity: 0;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 3px;
+        background-color: var(--primary-red);
+        bottom: -8px;
+        left: 0;
+        border-radius: 2px;
+      }
+
+      .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+
+      .detail-item {
+        background-color: var(--light-gray);
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .detail-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(230, 57, 70, 0.1);
+      }
+
+      .detail-label {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .detail-value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+      }
+
+      /* Tabs Navigation */
+      .tabs-nav {
+        display: flex;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 25px;
+        overflow-x: auto;
+        scrollbar-width: none; /* Firefox */
+      }
+
+      .tabs-nav::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+      }
+
+      .tab-btn {
+        padding: 12px 20px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .tab-btn.active {
+        color: var(--primary-red);
+      }
+
+      .tab-btn.active::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: var(--primary-red);
+        border-radius: 3px 3px 0 0;
+      }
+
+      .tab-btn:hover:not(.active) {
+        color: var(--dark-gray);
+        background-color: rgba(230, 57, 70, 0.05);
+      }
+
+      /* Tab Content */
+      .tab-content {
+        display: none;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Transactions Table */
+      .transactions-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      .transactions-table th {
+        text-align: left;
+        padding: 12px 15px;
+        background-color: var(--light-red);
+        color: var(--primary-red);
+        font-weight: 600;
+        position: sticky;
+        top: 0;
+      }
+
+      .transactions-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+      }
+
+      .transactions-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .transactions-table tr:hover td {
+        background-color: rgba(230, 57, 70, 0.05);
+      }
+
+      .transaction-amount {
+        font-weight: 700;
+      }
+
+      .transaction-amount.positive {
+        color: var(--success-green);
+      }
+
+      .transaction-amount.negative {
+        color: var(--error-red);
+      }
+
+      .transaction-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+
+      .status-completed {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .status-failed {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      /* Investment Cards */
+      .investment-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .investment-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .investment-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(230, 57, 70, 0.1);
+      }
+
+      .investment-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background-color: var(--primary-red);
+      }
+
+      .investment-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: var(--primary-red);
+      }
+
+      .investment-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .investment-detail {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .investment-label {
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .investment-value {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .investment-progress {
+        height: 8px;
+        background-color: #eee;
+        border-radius: 4px;
+        margin: 15px 0;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: var(--primary-gradient);
+        border-radius: 4px;
+        transition: width 1s ease-in-out;
+      }
+
+      .investment-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      /* Glass Card */
+      .glass-card {
+        background: var(--glass-bg);
+        border-radius: 20px;
+        border: 1px solid var(--glass-border);
+        backdrop-filter: blur(10px);
+        box-shadow: var(--glass-shadow);
+        padding: 25px;
+        margin-bottom: 30px;
+        transition: all 0.3s ease;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(230, 57, 70, 0.15);
+      }
+
+      /* Bottom Navigation */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        padding: 10px 0;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+      }
+
+      .bottom-nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--dark-gray);
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 20px;
+      }
+
+      .nav-item:hover,
+      .nav-item.active {
+        color: var(--primary-red);
+        transform: translateY(-5px);
+      }
+
+      .nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      .nav-item span {
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px);
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes shine {
+        0% {
+          transform: rotate(30deg) translate(-30%, -30%);
+        }
+        100% {
+          transform: rotate(30deg) translate(30%, 30%);
+        }
+      }
+
+      @keyframes slideInLeft {
+        from {
+          transform: translateX(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideInRight {
+        from {
+          transform: translateX(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 992px) {
+        .profile-header {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .profile-stats {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          padding: 90px 0 30px;
+        }
+
+        .profile-avatar {
+          width: 70px;
+          height: 70px;
+          font-size: 2rem;
+        }
+
+        .profile-name {
+          font-size: 1.3rem;
+        }
+
+        .transactions-table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+
+        .investment-cards {
+          grid-template-columns: 1fr;
+        }
+
+        .bottom-nav-container {
+          padding: 0 10px;
+        }
+
+        .nav-item {
+          padding: 5px;
+        }
+
+        .nav-item i {
+          font-size: 1.3rem;
+        }
+
+        .nav-item span {
+          font-size: 0.7rem;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .logo h1 {
+          font-size: 1.5rem;
+        }
+
+        .main-content {
+          padding: 80px 0 30px;
+        }
+
+        .profile-header {
+          padding: 20px;
+        }
+
+        .stat-item {
+          min-width: 80px;
+          padding: 8px 10px;
+        }
+
+        .stat-value {
+          font-size: 1rem;
+        }
+
+        .section-title {
+          font-size: 1.3rem;
+        }
+
+        .details-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tab-btn {
+          padding: 10px 15px;
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header id="header">
+      <div class="container header-container">
+        <div class="logo">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+            alt="Super Mario Logo"
+          />
+          <h1>Super Mario</h1>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <!-- User Profile Section -->
+        <section class="profile-section">
+          <div class="profile-header">
+            <div class="profile-avatar" id="userAvatar">M</div>
+            <div class="profile-info">
+              <h2 class="profile-name" id="userName">Loading...</h2>
+              <div class="profile-phone">
+                <i class="fas fa-phone"></i>
+                <span id="userPhone">Loading...</span>
+              </div>
+              <div class="profile-stats">
+                <div class="stat-item">
+                  <div class="stat-value" id="userBalance">₦0</div>
+                  <div class="stat-label">Balance</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="totalInvested">₦0</div>
+                  <div class="stat-label">Invested</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="totalEarnings">₦0</div>
+                  <div class="stat-label">Earnings</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-value" id="referralCount">0</div>
+                  <div class="stat-label">Referrals</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Account Details Section -->
+        <section class="account-details">
+          <h2 class="section-title">Account Details</h2>
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="detail-label">
+                <i class="fas fa-id-card"></i> User ID
+              </div>
+              <div class="detail-value" id="userId">Loading...</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <i class="fas fa-calendar-alt"></i> Join Date
+              </div>
+              <div class="detail-value" id="joinDate">Loading...</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <i class="fas fa-star"></i> Account Level
+              </div>
+              <div class="detail-value">Standard</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-label">
+                <i class="fas fa-share-alt"></i> Referral Link
+              </div>
+              <div class="detail-value">
+                <button class="btn btn-outline" id="copyReferralBtn">
+                  <i class="fas fa-copy"></i> Copy Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tabs Navigation -->
+        <div class="glass-card">
+          <div class="tabs-nav">
+            <div class="tab-btn active" data-tab="transactions">
+              <i class="fas fa-exchange-alt"></i> Transactions
+            </div>
+            <div class="tab-btn" data-tab="investments">
+              <i class="fas fa-chart-line"></i> Investments
+            </div>
+            <div class="tab-btn" data-tab="withdrawals">
+              <i class="fas fa-wallet"></i> Withdrawals
+            </div>
+            <div class="tab-btn" data-tab="deposits">
+              <i class="fas fa-money-bill-wave"></i> Deposits
+            </div>
+          </div>
+
+          <!-- Transactions Tab -->
+          <div id="transactions" class="tab-content active">
+            <table class="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="transactionsBody">
+                <!-- Transactions will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Investments Tab -->
+          <div id="investments" class="tab-content">
+            <div class="investment-cards" id="investmentsContainer">
+              <!-- Investments will be loaded here -->
+            </div>
+          </div>
+
+          <!-- Withdrawals Tab -->
+          <div id="withdrawals" class="tab-content">
+            <table class="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Bank</th>
+                  <th>Account</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="withdrawalsBody">
+                <!-- Withdrawals will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Deposits Tab -->
+          <div id="deposits" class="tab-content">
+            <table class="transactions-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Method</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="depositsBody">
+                <!-- Deposits will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="container bottom-nav-container">
+        <a href="main.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="withdraw.html" class="nav-item">
+          <i class="fas fa-wallet"></i>
+          <span>Withdraw</span>
+        </a>
+        <a href="recharge.html" class="nav-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Recharge</span>
+        </a>
+        <a href="info.html" class="nav-item">
+          <i class="fas fa-info-circle"></i>
+          <span>Info</span>
+        </a>
+        <a href="settings.html" class="nav-item active">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCgOvIkDCcS3DFrt5f6Y7pYmjCoHIfDF9U",
+        authDomain: "moniebase-b4b4d.firebaseapp.com",
+        projectId: "moniebase-b4b4d",
+        storageBucket: "moniebase-b4b4d.appspot.com",
+        messagingSenderId: "1009678808253",
+        appId: "1:1009678808253:android:ff94e94c52bad2db7973d4",
+        databaseURL: "https://moniebase-b4b4d-default-rtdb.firebaseio.com/",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      // DOM Elements
+      const userAvatar = document.getElementById("userAvatar");
+      const userName = document.getElementById("userName");
+      const userPhone = document.getElementById("userPhone");
+      const userId = document.getElementById("userId");
+      const userBalance = document.getElementById("userBalance");
+      const totalInvested = document.getElementById("totalInvested");
+      const totalEarnings = document.getElementById("totalEarnings");
+      const referralCount = document.getElementById("referralCount");
+      const joinDate = document.getElementById("joinDate");
+      const copyReferralBtn = document.getElementById("copyReferralBtn");
+      const transactionsBody = document.getElementById("transactionsBody");
+      const investmentsContainer = document.getElementById(
+        "investmentsContainer"
+      );
+      const withdrawalsBody = document.getElementById("withdrawalsBody");
+      const depositsBody = document.getElementById("depositsBody");
+      const tabBtns = document.querySelectorAll(".tab-btn");
+      const tabContents = document.querySelectorAll(".tab-content");
+
+      // Current User Data
+      let currentUser = null;
+      let userData = null;
+      let transactions = [];
+      let investments = [];
+      let withdrawals = [];
+      let deposits = [];
+
+      // Format number with commas
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Format date
+      function formatDate(timestamp) {
+        if (!timestamp) return "N/A";
+        const date = new Date(timestamp);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      // Calculate days remaining
+      function getDaysRemaining(startDate, duration) {
+        const now = new Date();
+        const start = new Date(startDate);
+        const end = new Date(start.getTime() + duration * 24 * 60 * 60 * 1000);
+        const diff = end - now;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+      }
+
+      // Initialize the app
+      function initApp() {
+        // Check if user is logged in
+        const user = localStorage.getItem("superMarioUser");
+        if (!user) {
+          window.location.href = "register.html";
+          return;
+        }
+
+        currentUser = JSON.parse(user);
+        const userRef = database.ref("users/" + currentUser.phone);
+
+        // Load user data
+        userRef.on("value", (snapshot) => {
+          if (!snapshot.exists()) {
+            localStorage.removeItem("superMarioUser");
+            window.location.href = "register.html";
+            return;
+          }
+
+          userData = snapshot.val();
+          updateUserProfile();
+          loadTransactions();
+          loadInvestments();
+          loadWithdrawals();
+          loadDeposits();
+        });
+
+        // Tab switching
+        tabBtns.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const tabId = btn.getAttribute("data-tab");
+
+            // Update active tab
+            tabBtns.forEach((t) => t.classList.remove("active"));
+            btn.classList.add("active");
+
+            // Show corresponding content
+            tabContents.forEach((content) =>
+              content.classList.remove("active")
+            );
+            document.getElementById(tabId).classList.add("active");
+          });
+        });
+
+        // Copy referral link
+        copyReferralBtn.addEventListener("click", () => {
+          const referralLink = `https://supermario1.onrender.com/register?ref=${currentUser.phone}`;
+          navigator.clipboard.writeText(referralLink).then(() => {
+            copyReferralBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+              copyReferralBtn.innerHTML =
+                '<i class="fas fa-copy"></i> Copy Link';
+            }, 2000);
+          });
+        });
+
+        // Header scroll effect
+        const header = document.getElementById("header");
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
+        });
+
+        // Bottom nav active state
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            if (
+              !item.getAttribute("href") ||
+              item.getAttribute("href") === "#"
+            ) {
+              e.preventDefault();
+            }
+            navItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+          });
+        });
+      }
+
+      // Update user profile
+      function updateUserProfile() {
+        // Set avatar with first letter of phone number
+        userAvatar.textContent = currentUser.phone.charAt(0).toUpperCase();
+
+        // Set user details
+        userName.textContent = `User ${currentUser.phone.substring(7)}`;
+        userPhone.textContent = currentUser.phone;
+        userId.textContent = currentUser.phone;
+        userBalance.textContent = `₦${formatNumber(userData.balance || 0)}`;
+        referralCount.textContent = userData.referrals || 0;
+
+        // Calculate total invested and earnings
+        let invested = 0;
+        let earnings = 0;
+
+        if (userData.investments) {
+          Object.values(userData.investments).forEach((investment) => {
+            invested += investment.amount || 0;
+            earnings +=
+              (investment.dailyIncome || 0) * (investment.daysCompleted || 0);
+          });
+        }
+
+        totalInvested.textContent = `₦${formatNumber(invested)}`;
+        totalEarnings.textContent = `₦${formatNumber(earnings)}`;
+
+        // Set join date
+        joinDate.textContent = formatDate(userData.createdAt);
+      }
+
+      // Load transactions
+      function loadTransactions() {
+        // In a real app, you would fetch transactions from Firebase
+        // For demo purposes, we'll create some sample data
+        transactions = [
+          {
+            id: "1",
+            date: Date.now() - 86400000 * 2,
+            description: "Investment in Mario 3",
+            amount: -10000,
+            status: "completed",
+          },
+          {
+            id: "2",
+            date: Date.now() - 86400000,
+            description: "Daily Earnings",
+            amount: 1670,
+            status: "completed",
+          },
+          {
+            id: "3",
+            date: Date.now(),
+            description: "Daily Earnings",
+            amount: 1670,
+            status: "pending",
+          },
+        ];
+
+        renderTransactions();
+      }
+
+      // Render transactions
+      function renderTransactions() {
+        transactionsBody.innerHTML = "";
+        transactions.forEach((transaction) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(transaction.date)}</td>
+            <td>${transaction.description}</td>
+            <td class="transaction-amount ${
+              transaction.amount > 0 ? "positive" : "negative"
+            }">
+              ${transaction.amount > 0 ? "+" : ""}₦${formatNumber(
+            Math.abs(transaction.amount)
+          )}
+            </td>
+            <td>
+              <span class="transaction-status status-${transaction.status}">
+                ${
+                  transaction.status.charAt(0).toUpperCase() +
+                  transaction.status.slice(1)
+                }
+              </span>
+            </td>
+          `;
+          transactionsBody.appendChild(row);
+        });
+      }
+
+      // Load investments
+      function loadInvestments() {
+        // In a real app, you would fetch investments from Firebase
+        // For demo purposes, we'll use the packages from main.html
+        investments = userData.investments
+          ? Object.entries(userData.investments).map(([id, investment]) => ({
+              id,
+              ...investment,
+            }))
+          : [];
+
+        renderInvestments();
+      }
+
+      // Render investments
+      function renderInvestments() {
+        investmentsContainer.innerHTML = "";
+
+        if (investments.length === 0) {
+          investmentsContainer.innerHTML = `
+            <div class="glass-card" style="text-align: center; padding: 30px;">
+              <i class="fas fa-chart-line" style="font-size: 2rem; color: #666; margin-bottom: 15px;"></i>
+              <h3 style="margin-bottom: 10px;">No Active Investments</h3>
+              <p style="color: #666;">You don't have any active investments yet. Start investing to earn daily returns!</p>
+              <a href="main.html" class="btn btn-primary" style="margin-top: 20px;">
+                <i class="fas fa-arrow-right"></i> View Packages
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        investments.forEach((investment) => {
+          const daysRemaining = getDaysRemaining(
+            investment.startDate,
+            investment.cycle
+          );
+          const progress = Math.min();
+          Math.floor(
+            ((investment.daysCompleted || 0) / investment.cycle) * 100,
+            100
+          );
+
+          const card = document.createElement("div");
+          card.className = "investment-card";
+          card.innerHTML = `
+            <h3 class="investment-name">${investment.packageName}</h3>
+            <div class="investment-details">
+              <div class="investment-detail">
+                <span class="investment-label">Amount</span>
+                <span class="investment-value">₦${formatNumber(
+                  investment.amount
+                )}</span>
+              </div>
+              <div class="investment-detail">
+                <span class="investment-label">Daily Income</span>
+                <span class="investment-value">₦${formatNumber(
+                  investment.dailyIncome
+                )}</span>
+              </div>
+              <div class="investment-detail">
+                <span class="investment-label">Days Completed</span>
+                <span class="investment-value">${
+                  investment.daysCompleted || 0
+                }/${investment.cycle}</span>
+              </div>
+              <div class="investment-detail">
+                <span class="investment-label">Days Remaining</span>
+                <span class="investment-value">${Math.max(
+                  daysRemaining,
+                  0
+                )}</span>
+              </div>
+            </div>
+            <div class="investment-progress">
+              <div class="progress-bar" style="width: ${progress}%"></div>
+            </div>
+            <div class="investment-actions">
+              <span class="investment-status status-${investment.status}">
+                ${
+                  investment.status.charAt(0).toUpperCase() +
+                  investment.status.slice(1)
+                }
+              </span>
+              <span class="investment-total">
+                Total: ₦${formatNumber(investment.totalReturn)}
+              </span>
+            </div>
+          `;
+          investmentsContainer.appendChild(card);
+        });
+      }
+
+      // Load withdrawals
+      function loadWithdrawals() {
+        // In a real app, you would fetch withdrawals from Firebase
+        // For demo purposes, we'll create some sample data
+        withdrawals = [
+          {
+            id: "1",
+            date: Date.now() - 86400000 * 3,
+            bank: "Moniepoint",
+            account: "5555969924",
+            amount: 5000,
+            status: "completed",
+          },
+          {
+            id: "2",
+            date: Date.now() - 86400000,
+            bank: "Opay",
+            account: "1234567890",
+            amount: 10000,
+            status: "pending",
+          },
+        ];
+
+        renderWithdrawals();
+      }
+
+      // Render withdrawals
+      function renderWithdrawals() {
+        withdrawalsBody.innerHTML = "";
+        withdrawals.forEach((withdrawal) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(withdrawal.date)}</td>
+            <td>${withdrawal.bank}</td>
+            <td>${withdrawal.account}</td>
+            <td class="transaction-amount negative">-₦${formatNumber(
+              withdrawal.amount
+            )}</td>
+            <td>
+              <span class="transaction-status status-${withdrawal.status}">
+                ${
+                  withdrawal.status.charAt(0).toUpperCase() +
+                  withdrawal.status.slice(1)
+                }
+              </span>
+            </td>
+          `;
+          withdrawalsBody.appendChild(row);
+        });
+      }
+
+      // Load deposits
+      function loadDeposits() {
+        // In a real app, you would fetch deposits from Firebase
+        // For demo purposes, we'll create some sample data
+        deposits = [
+          {
+            id: "1",
+            date: Date.now() - 86400000 * 5,
+            method: "Bank Transfer",
+            amount: 30000,
+            status: "completed",
+          },
+          {
+            id: "2",
+            date: Date.now() - 86400000 * 2,
+            method: "Bank Transfer",
+            amount: 10000,
+            status: "completed",
+          },
+        ];
+
+        renderDeposits();
+      }
+
+      // Render deposits
+      function renderDeposits() {
+        depositsBody.innerHTML = "";
+        deposits.forEach((deposit) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatDate(deposit.date)}</td>
+            <td>${deposit.method}</td>
+            <td class="transaction-amount positive">+₦${formatNumber(
+              deposit.amount
+            )}</td>
+            <td>
+              <span class="transaction-status status-${deposit.status}">
+                ${
+                  deposit.status.charAt(0).toUpperCase() +
+                  deposit.status.slice(1)
+                }
+              </span>
+            </td>
+          `;
+          depositsBody.appendChild(row);
+        });
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+  </body>
+</html>

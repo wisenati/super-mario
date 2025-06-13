@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Mario - Information</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --dark-red: #d00000;
+        --white: #ffffff;
+        --light-gray: #f8f9fa;
+        --dark-gray: #333333;
+        --gold: #ffd700;
+        --light-red: rgba(230, 57, 70, 0.1);
+        --success-green: #27ae60;
+        --error-red: #e74c3c;
+        --overlay: rgba(0, 0, 0, 0.7);
+        --primary-gradient: linear-gradient(135deg, #e63946 0%, #d00000 100%);
+        --gold-gradient: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        overflow-x: hidden;
+        min-height: 100vh;
+        padding-bottom: 80px; /* Space for bottom nav */
+      }
+
+      /* Header Styles */
+      header {
+        background-color: var(--white);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+        padding: 15px 0;
+        transition: all 0.3s ease;
+      }
+
+      header.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo img {
+        width: 40px;
+        height: 40px;
+        animation: bounce 2s infinite;
+      }
+
+      .logo h1 {
+        color: var(--primary-red);
+        font-weight: 800;
+        font-size: 1.8rem;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: var(--primary-gradient);
+        color: var(--white);
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-primary::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn-primary:hover::before {
+        left: 100%;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .btn-gold {
+        background: var(--gold-gradient);
+        color: var(--dark-gray);
+        border: none;
+        font-weight: 700;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn-gold::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn-gold:hover::before {
+        left: 100%;
+      }
+
+      .btn-gold:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(218, 165, 32, 0.3);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--primary-red);
+        border: 2px solid var(--primary-red);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--primary-red);
+        color: var(--white);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--dark-gray);
+        cursor: pointer;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 100px 0 30px;
+      }
+
+      /* Gift Code Section */
+      .gift-code-section {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .gift-code-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: var(--gold-gradient);
+        z-index: 2;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 4px;
+        background-color: var(--primary-red);
+        bottom: -10px;
+        left: 0;
+        border-radius: 2px;
+      }
+
+      .gift-code-form {
+        margin-top: 30px;
+        position: relative;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: var(--dark-gray);
+        position: relative;
+        padding-left: 15px;
+      }
+
+      .form-group label::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        background-color: var(--primary-red);
+        border-radius: 50%;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid #eee;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.3s ease;
+        background-color: var(--light-gray);
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        outline: none;
+        background-color: var(--white);
+      }
+
+      .btn-block {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 15px;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        margin-top: 30px;
+      }
+
+      /* Info Cards Section */
+      .info-section {
+        margin-bottom: 30px;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
+      }
+
+      .info-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        transform: translateY(0);
+      }
+
+      .info-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(230, 57, 70, 0.1);
+      }
+
+      .info-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background-color: var(--primary-red);
+      }
+
+      .info-card h3 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .info-card h3 i {
+        font-size: 1.6rem;
+      }
+
+      .info-card p {
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 15px;
+      }
+
+      .info-card ul {
+        list-style: none;
+        margin-bottom: 15px;
+      }
+
+      .info-card li {
+        margin-bottom: 10px;
+        position: relative;
+        padding-left: 25px;
+        color: #555;
+      }
+
+      .info-card li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 10px;
+        height: 10px;
+        background-color: var(--primary-red);
+        border-radius: 50%;
+      }
+
+      /* Sponsors Section */
+      .sponsors-section {
+        margin-bottom: 30px;
+      }
+
+      .sponsors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
+      }
+
+      .sponsor-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        transform: scale(1);
+      }
+
+      .sponsor-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(230, 57, 70, 0.1);
+      }
+
+      .sponsor-logo {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        margin-bottom: 20px;
+        filter: grayscale(100%);
+        transition: all 0.3s ease;
+      }
+
+      .sponsor-card:hover .sponsor-logo {
+        filter: grayscale(0%);
+      }
+
+      .sponsor-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        text-align: center;
+      }
+
+      .sponsor-role {
+        font-size: 0.9rem;
+        color: #666;
+        text-align: center;
+        margin-top: 5px;
+      }
+
+      /* Success Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal-content {
+        background-color: var(--white);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        transform: translateY(20px);
+        animation: slideUp 0.3s ease-out forwards;
+      }
+
+      .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .close-modal:hover {
+        color: var(--primary-red);
+        transform: rotate(90deg);
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        text-align: center;
+      }
+
+      .modal-icon {
+        text-align: center;
+        font-size: 3rem;
+        margin-bottom: 20px;
+        color: var(--primary-red);
+        animation: bounce 1s infinite;
+      }
+
+      .modal-message {
+        text-align: center;
+        margin-bottom: 25px;
+        line-height: 1.6;
+      }
+
+      .modal-success .modal-icon {
+        color: var(--success-green);
+      }
+
+      .modal-error .modal-icon {
+        color: var(--error-red);
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        display: none;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: spin 1s ease-in-out infinite;
+        margin: 0 auto;
+      }
+
+      .btn-primary.loading .loading-spinner {
+        display: inline-block;
+      }
+
+      .btn-primary.loading span {
+        display: none;
+      }
+
+      /* Bottom Navigation */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        padding: 10px 0;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+      }
+
+      .bottom-nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--dark-gray);
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 20px;
+      }
+
+      .nav-item:hover,
+      .nav-item.active {
+        color: var(--primary-red);
+        transform: translateY(-5px);
+      }
+
+      .nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      .nav-item span {
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px);
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 10px 20px rgba(230, 57, 70, 0.2);
+        }
+        50% {
+          transform: scale(1.02);
+          box-shadow: 0 15px 30px rgba(230, 57, 70, 0.3);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 10px 20px rgba(230, 57, 70, 0.2);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes gradientFlow {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
+      }
+
+      /* Floating Coins Animation */
+      .floating-coins {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+      }
+
+      .coin {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background-color: var(--gold);
+        border-radius: 50%;
+        opacity: 0;
+        animation: float-up 4s ease-in forwards;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dark-gray);
+        font-weight: bold;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+
+      @keyframes float-up {
+        0% {
+          transform: translateY(100vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-100px) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          padding: 90px 0 30px;
+        }
+
+        .gift-code-section,
+        .info-card,
+        .sponsor-card {
+          padding: 25px;
+        }
+
+        .section-title {
+          font-size: 1.6rem;
+        }
+
+        .info-grid,
+        .sponsors-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .bottom-nav-container {
+          padding: 0 10px;
+        }
+
+        .nav-item {
+          padding: 5px;
+        }
+
+        .nav-item i {
+          font-size: 1.3rem;
+        }
+
+        .nav-item span {
+          font-size: 0.7rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo h1 {
+          font-size: 1.5rem;
+        }
+
+        .main-content {
+          padding: 80px 0 30px;
+        }
+
+        .section-title {
+          font-size: 1.4rem;
+        }
+
+        .gift-code-section,
+        .info-card,
+        .sponsor-card {
+          padding: 20px;
+        }
+
+        .form-control {
+          padding: 12px 15px;
+        }
+
+        .btn-block {
+          padding: 12px;
+          font-size: 1rem;
+        }
+
+        .modal-content {
+          padding: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header id="header">
+      <div class="container header-container">
+        <div class="logo">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+            alt="Super Mario Logo"
+          />
+          <h1>Super Mario</h1>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <!-- Gift Code Section -->
+        <section class="gift-code-section">
+          <div class="floating-coins" id="floatingCoins"></div>
+          <h2 class="section-title">Redeem Gift Code</h2>
+          <p>
+            Enter a valid gift code below to receive instant cash rewards in
+            your account balance. Limited time offers available!
+          </p>
+
+          <form id="giftCodeForm" class="gift-code-form">
+            <div class="form-group">
+              <label for="giftCode">Gift Code</label>
+              <input
+                type="text"
+                id="giftCode"
+                class="form-control"
+                placeholder="Enter your gift code"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-gold btn-block">
+              <span>Redeem Now</span>
+              <div class="loading-spinner"></div>
+            </button>
+          </form>
+        </section>
+
+        <!-- Information Section -->
+        <section class="info-section">
+          <h2 class="section-title">About Super Mario</h2>
+          <div class="info-grid">
+            <div class="info-card">
+              <h3><i class="fas fa-rocket"></i> Our Mission</h3>
+              <p>
+                Super Mario is revolutionizing the investment landscape by
+                providing accessible, high-yield investment opportunities to
+                everyone. Our mission is to empower individuals to grow their
+                wealth through smart, secure investments.
+              </p>
+              <p>
+                We believe in transparency, reliability, and exceptional returns
+                for our investors.
+              </p>
+            </div>
+
+            <div class="info-card">
+              <h3><i class="fas fa-shield-alt"></i> Security</h3>
+              <p>
+                Your security is our top priority. We employ industry-leading
+                security measures to protect your investments and personal
+                information:
+              </p>
+              <ul>
+                <li>256-bit SSL encryption for all transactions</li>
+                <li>Two-factor authentication available</li>
+                <li>Regular security audits</li>
+                <li>Secure cold storage for funds</li>
+              </ul>
+            </div>
+
+            <div class="info-card">
+              <h3><i class="fas fa-chart-line"></i> How It Works</h3>
+              <p>
+                Super Mario makes investing simple and profitable. Here's how
+                our platform works:
+              </p>
+              <ul>
+                <li>Choose an investment package that fits your budget</li>
+                <li>Invest and start earning daily returns</li>
+                <li>Withdraw your earnings anytime</li>
+                <li>Compound your returns for maximum growth</li>
+              </ul>
+              <p>
+                Our automated system ensures you receive your payouts like
+                clockwork.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sponsors Section -->
+        <section class="sponsors-section">
+          <h2 class="section-title">Our Sponsors & Partners</h2>
+          <p>
+            Super Mario is proud to be supported by these industry leaders and
+            financial institutions.
+          </p>
+          <div class="sponsors-grid">
+            <div class="sponsor-card">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/196/196566.png"
+                alt="Goldman Sachs"
+                class="sponsor-logo"
+              />
+              <h4 class="sponsor-name">Goldman Sachs</h4>
+              <p class="sponsor-role">Financial Partner</p>
+            </div>
+            <div class="sponsor-card">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/603/603221.png"
+                alt="Visa"
+                class="sponsor-logo"
+              />
+              <h4 class="sponsor-name">Visa</h4>
+              <p class="sponsor-role">Payment Solutions</p>
+            </div>
+            <div class="sponsor-card">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/603/603197.png"
+                alt="Mastercard"
+                class="sponsor-logo"
+              />
+              <h4 class="sponsor-name">Mastercard</h4>
+              <p class="sponsor-role">Payment Solutions</p>
+            </div>
+            <div class="sponsor-card">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/603/603234.png"
+                alt="PayPal"
+                class="sponsor-logo"
+              />
+              <h4 class="sponsor-name">PayPal</h4>
+              <p class="sponsor-role">Payment Processor</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal modal-success" id="successModal">
+      <div class="modal-content">
+        <span class="close-modal" id="closeSuccessModal">&times;</span>
+        <div class="modal-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="modal-title">Success!</h3>
+        <p class="modal-message" id="successMessage">
+          Your gift code has been redeemed successfully! ₦250 has been added to
+          your account balance.
+        </p>
+        <button class="btn btn-primary btn-block" id="successModalBtn">
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal modal-error" id="errorModal">
+      <div class="modal-content">
+        <span class="close-modal" id="closeErrorModal">&times;</span>
+        <div class="modal-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3 class="modal-title">Oops!</h3>
+        <p class="modal-message" id="errorMessage">
+          Something went wrong. Please try again.
+        </p>
+        <button class="btn btn-primary btn-block" id="errorModalBtn">
+          Try Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="container bottom-nav-container">
+        <a href="main.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="withdraw.html" class="nav-item">
+          <i class="fas fa-wallet"></i>
+          <span>Withdraw</span>
+        </a>
+        <a href="recharge.html" class="nav-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Recharge</span>
+        </a>
+        <a href="info.html" class="nav-item active">
+          <i class="fas fa-info-circle"></i>
+          <span>Info</span>
+        </a>
+        <a href="settings.html" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCgOvIkDCcS3DFrt5f6Y7pYmjCoHIfDF9U",
+        authDomain: "moniebase-b4b4d.firebaseapp.com",
+        projectId: "moniebase-b4b4d",
+        storageBucket: "moniebase-b4b4d.appspot.com",
+        messagingSenderId: "1009678808253",
+        appId: "1:1009678808253:android:ff94e94c52bad2db7973d4",
+        databaseURL: "https://moniebase-b4b4d-default-rtdb.firebaseio.com/",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      // DOM Elements
+      const giftCodeForm = document.getElementById("giftCodeForm");
+      const successModal = document.getElementById("successModal");
+      const errorModal = document.getElementById("errorModal");
+      const successMessage = document.getElementById("successMessage");
+      const errorMessage = document.getElementById("errorMessage");
+      const closeSuccessModal = document.getElementById("closeSuccessModal");
+      const closeErrorModal = document.getElementById("closeErrorModal");
+      const successModalBtn = document.getElementById("successModalBtn");
+      const errorModalBtn = document.getElementById("errorModalBtn");
+      const floatingCoins = document.getElementById("floatingCoins");
+
+      // Current User Data
+      let currentUser = null;
+      let userData = null;
+
+      // Special gift code configuration
+      const SPECIAL_GIFT_CODE = "S3PERMARIO11";
+      const SPECIAL_GIFT_AMOUNT = 250;
+      const MAX_REDEMPTIONS = 2;
+
+      // Create floating coins animation
+      function createFloatingCoins() {
+        const coins = ["₦", "₦", "₦", "₦", "₦", "₦", "₦", "₦"];
+        coins.forEach((coin, index) => {
+          const coinElement = document.createElement("div");
+          coinElement.className = "coin";
+          coinElement.textContent = coin;
+          coinElement.style.left = `${Math.random() * 100}%`;
+          coinElement.style.animationDelay = `${index * 0.5}s`;
+          floatingCoins.appendChild(coinElement);
+
+          // Remove coin after animation completes
+          setTimeout(() => {
+            coinElement.remove();
+          }, 4000);
+        });
+      }
+
+      // Show floating coins periodically
+      setInterval(createFloatingCoins, 3000);
+
+      // Format number with commas
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Show success modal
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successModal.style.display = "flex";
+      }
+
+      // Show error modal
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorModal.style.display = "flex";
+      }
+
+      // Close modals
+      function closeModals() {
+        successModal.style.display = "none";
+        errorModal.style.display = "none";
+      }
+
+      // Initialize the app
+      function initApp() {
+        // Check if user is logged in
+        const user = localStorage.getItem("superMarioUser");
+        if (!user) {
+          window.location.href = "register.html";
+          return;
+        }
+
+        currentUser = JSON.parse(user);
+        const userRef = database.ref("users/" + currentUser.phone);
+
+        // Load user data
+        userRef.on("value", (snapshot) => {
+          if (!snapshot.exists()) {
+            localStorage.removeItem("superMarioUser");
+            window.location.href = "register.html";
+            return;
+          }
+
+          userData = snapshot.val();
+        });
+
+        // Gift code form submission
+        giftCodeForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const giftCode = document
+            .getElementById("giftCode")
+            .value.trim()
+            .toUpperCase();
+          const submitBtn = giftCodeForm.querySelector("button[type='submit']");
+
+          // Validate gift code
+          if (!giftCode) {
+            showError("Please enter a gift code");
+            return;
+          }
+
+          // Check if it's the special gift code
+          if (giftCode === SPECIAL_GIFT_CODE) {
+            // Check redemption count
+            const redemptionRef = database.ref(
+              `giftCodeRedemptions/${SPECIAL_GIFT_CODE}`
+            );
+            const snapshot = await redemptionRef.once("value");
+            let redemptionCount = snapshot.val() || 0;
+
+            if (redemptionCount >= MAX_REDEMPTIONS) {
+              showError(
+                "This gift code has already been redeemed the maximum number of times"
+              );
+              return;
+            }
+
+            // Show loading state
+            submitBtn.classList.add("loading");
+
+            try {
+              // Update redemption count
+              await redemptionRef.set(redemptionCount + 1);
+
+              // Update user balance
+              const updates = {};
+              updates[`users/${currentUser.phone}/balance`] =
+                (userData.balance || 0) + SPECIAL_GIFT_AMOUNT;
+
+              await database.ref().update(updates);
+
+              // Update local user data
+              userData.balance += SPECIAL_GIFT_AMOUNT;
+
+              // Show success message with coins animation
+              createFloatingCoins();
+              showSuccess(
+                `You've successfully redeemed the gift code! ₦${formatNumber(
+                  SPECIAL_GIFT_AMOUNT
+                )} has been added to your account balance.`
+              );
+
+              // Reset form
+              giftCodeForm.reset();
+            } catch (error) {
+              console.error("Gift code redemption error:", error);
+              showError("An error occurred. Please try again.");
+            } finally {
+              submitBtn.classList.remove("loading");
+            }
+          } else {
+            showError("Invalid gift code. Please check and try again.");
+          }
+        });
+
+        // Header scroll effect
+        const header = document.getElementById("header");
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
+        });
+
+        // Modal event listeners
+        closeSuccessModal.addEventListener("click", closeModals);
+        closeErrorModal.addEventListener("click", closeModals);
+        successModalBtn.addEventListener("click", closeModals);
+        errorModalBtn.addEventListener("click", closeModals);
+
+        // Close modals when clicking outside
+        window.addEventListener("click", (e) => {
+          if (e.target === successModal || e.target === errorModal) {
+            closeModals();
+          }
+        });
+
+        // Bottom nav active state
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            if (
+              !item.getAttribute("href") ||
+              item.getAttribute("href") === "#"
+            ) {
+              e.preventDefault();
+            }
+            navItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+          });
+        });
+
+        // Initial floating coins animation
+        createFloatingCoins();
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+  </body>
+</html>

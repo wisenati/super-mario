@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Mario - Recharge Wallet</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --dark-red: #d00000;
+        --white: #ffffff;
+        --light-gray: #f8f9fa;
+        --dark-gray: #333333;
+        --gold: #ffd700;
+        --light-red: rgba(230, 57, 70, 0.1);
+        --success-green: #27ae60;
+        --error-red: #e74c3c;
+        --overlay: rgba(0, 0, 0, 0.7);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        overflow-x: hidden;
+        min-height: 100vh;
+        padding-bottom: 80px; /* Space for bottom nav */
+      }
+
+      /* Header Styles */
+      header {
+        background-color: var(--white);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+        padding: 15px 0;
+        transition: all 0.3s ease;
+      }
+
+      header.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo img {
+        width: 40px;
+        height: 40px;
+        animation: bounce 2s infinite;
+      }
+
+      .logo h1 {
+        color: var(--primary-red);
+        font-weight: 800;
+        font-size: 1.8rem;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-red);
+        color: var(--white);
+        border: 2px solid var(--primary-red);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--dark-red);
+        border-color: var(--dark-red);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--primary-red);
+        border: 2px solid var(--primary-red);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--primary-red);
+        color: var(--white);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--dark-gray);
+        cursor: pointer;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 100px 0 30px;
+      }
+
+      /* Recharge Section */
+      .recharge-section {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 4px;
+        background-color: var(--primary-red);
+        bottom: -10px;
+        left: 0;
+        border-radius: 2px;
+      }
+
+      .recharge-method {
+        margin-bottom: 30px;
+      }
+
+      .method-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .method-title i {
+        font-size: 1.2rem;
+      }
+
+      .method-card {
+        background-color: var(--light-gray);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .method-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(230, 57, 70, 0.1);
+      }
+
+      .bank-info {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .bank-info-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .bank-info-icon {
+        width: 40px;
+        height: 40px;
+        background-color: var(--light-red);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-red);
+        font-size: 1.2rem;
+      }
+
+      .bank-info-text h4 {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .bank-info-text p {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--dark-gray);
+      }
+
+      .bank-logo {
+        width: 150px;
+        height: auto;
+        margin: 15px 0;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .limits {
+        background-color: var(--light-red);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 20px 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .limit-item {
+        flex: 1;
+        min-width: 200px;
+        background-color: var(--white);
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+      }
+
+      .limit-item h4 {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .limit-item p {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--primary-red);
+      }
+
+      .payment-confirm-btn {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      /* Bottom Sheet Modal */
+      .bottom-sheet {
+        position: fixed;
+        bottom: -100%;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        box-shadow: 0 -5px 30px rgba(0, 0, 0, 0.2);
+        z-index: 9999;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        padding: 25px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .bottom-sheet.active {
+        bottom: 0;
+      }
+
+      .bottom-sheet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .bottom-sheet-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+      }
+
+      .close-bottom-sheet {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .close-bottom-sheet:hover {
+        color: var(--primary-red);
+        transform: rotate(90deg);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark-gray);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: "Montserrat", sans-serif;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        outline: none;
+      }
+
+      select.form-control {
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 1em;
+      }
+
+      .btn-block {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 15px;
+        font-size: 1.1rem;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+
+      /* Overlay */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--overlay);
+        z-index: 9998;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Success Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal-content {
+        background-color: var(--white);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 400px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        transform: translateY(20px);
+        animation: slideUp 0.3s ease-out forwards;
+      }
+
+      .close-modal {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .close-modal:hover {
+        color: var(--primary-red);
+        transform: rotate(90deg);
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        text-align: center;
+      }
+
+      .modal-icon {
+        text-align: center;
+        font-size: 3rem;
+        margin-bottom: 20px;
+        color: var(--primary-red);
+        animation: bounce 1s infinite;
+      }
+
+      .modal-message {
+        text-align: center;
+        margin-bottom: 25px;
+        line-height: 1.6;
+      }
+
+      .modal-success .modal-icon {
+        color: var(--success-green);
+      }
+
+      .modal-error .modal-icon {
+        color: var(--error-red);
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        display: none;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: spin 1s ease-in-out infinite;
+        margin: 0 auto;
+      }
+
+      .btn-primary.loading .loading-spinner {
+        display: inline-block;
+      }
+
+      .btn-primary.loading span {
+        display: none;
+      }
+
+      /* Bottom Navigation */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        padding: 10px 0;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+      }
+
+      .bottom-nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--dark-gray);
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 20px;
+      }
+
+      .nav-item:hover,
+      .nav-item.active {
+        color: var(--primary-red);
+        transform: translateY(-5px);
+      }
+
+      .nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      .nav-item span {
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px);
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(0px);
+        }
+        50% {
+          transform: translateY(-10px);
+        }
+        100% {
+          transform: translateY(0px);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          padding: 90px 0 30px;
+        }
+
+        .bank-info-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .bank-info-icon {
+          width: 35px;
+          height: 35px;
+          font-size: 1rem;
+        }
+
+        .bank-info-text p {
+          font-size: 1rem;
+        }
+
+        .limit-item {
+          min-width: 100%;
+        }
+
+        .bottom-sheet {
+          padding: 20px;
+        }
+
+        .bottom-nav-container {
+          padding: 0 10px;
+        }
+
+        .nav-item {
+          padding: 5px;
+        }
+
+        .nav-item i {
+          font-size: 1.3rem;
+        }
+
+        .nav-item span {
+          font-size: 0.7rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo h1 {
+          font-size: 1.5rem;
+        }
+
+        .main-content {
+          padding: 80px 0 30px;
+        }
+
+        .section-title {
+          font-size: 1.5rem;
+        }
+
+        .recharge-section {
+          padding: 20px;
+        }
+
+        .method-title {
+          font-size: 1.1rem;
+        }
+
+        .bank-logo {
+          width: 120px;
+        }
+
+        .bottom-sheet-title {
+          font-size: 1.3rem;
+        }
+
+        .form-control {
+          padding: 12px;
+        }
+
+        .btn-block {
+          padding: 12px;
+          font-size: 1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header id="header">
+      <div class="container header-container">
+        <div class="logo">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+            alt="Super Mario Logo"
+          />
+          <h1>Super Mario</h1>
+        </div>
+
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <!-- Recharge Section -->
+        <section class="recharge-section">
+          <h2 class="section-title">Recharge Wallet</h2>
+
+          <!-- Bank Transfer Method -->
+          <div class="recharge-method">
+            <h3 class="method-title">
+              <i class="fas fa-university"></i> Bank Transfer
+            </h3>
+
+            <div class="method-card">
+              <div class="bank-info">
+                <div class="bank-info-item">
+                  <div class="bank-info-icon">
+                    <i class="fas fa-user-tie"></i>
+                  </div>
+                  <div class="bank-info-text">
+                    <h4>Account Name</h4>
+                    <p>Precious Ahuekwe</p>
+                  </div>
+                </div>
+
+                <div class="bank-info-item">
+                  <div class="bank-info-icon">
+                    <i class="fas fa-credit-card"></i>
+                  </div>
+                  <div class="bank-info-text">
+                    <h4>Account Number</h4>
+                    <p>5555969924</p>
+                  </div>
+                </div>
+
+                <div class="bank-info-item">
+                  <div class="bank-info-icon">
+                    <i class="fas fa-landmark"></i>
+                  </div>
+                  <div class="bank-info-text">
+                    <h4>Bank Name</h4>
+                    <p>Moniepoint</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- <img
+                src="https://images.seeklogo.com/logo-png/51/1/moniepoint-logo-png_seeklogo-512644.png"
+                alt="Moniepoint Bank Logo"
+                class="bank-logo"
+              /> -->
+
+              <div class="limits">
+                <div class="limit-item">
+                  <h4>Minimum Recharge</h4>
+                  <p>₦3,000</p>
+                </div>
+                <div class="limit-item">
+                  <h4>Maximum Recharge</h4>
+                  <p>₦500,000</p>
+                </div>
+              </div>
+
+              <div class="payment-confirm-btn">
+                <button
+                  class="btn btn-primary btn-block"
+                  id="paymentConfirmBtn"
+                >
+                  <i class="fas fa-check-circle"></i> I Have Made Payment
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Bottom Sheet Modal -->
+    <div class="bottom-sheet" id="paymentBottomSheet">
+      <div class="bottom-sheet-header">
+        <h3 class="bottom-sheet-title">Payment Confirmation</h3>
+        <button class="close-bottom-sheet" id="closeBottomSheet">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <form id="paymentConfirmationForm">
+        <div class="form-group">
+          <label for="amount">Amount Transferred</label>
+          <select id="amount" class="form-control" required>
+            <option value="" disabled selected>Select amount</option>
+            <option value="3000">₦3,000</option>
+            <option value="5000">₦5,000</option>
+            <option value="10000">₦10,000</option>
+            <option value="20000">₦20,000</option>
+            <option value="50000">₦50,000</option>
+            <option value="100000">₦100,000</option>
+            <option value="200000">₦200,000</option>
+            <option value="300000">₦300,000</option>
+            <option value="400000">₦400,000</option>
+            <option value="500000">₦500,000</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="senderName">Sender's Full Name</label>
+          <input
+            type="text"
+            id="senderName"
+            class="form-control"
+            placeholder="Enter sender's name as it appears on bank account"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="senderAccount">Sender's Account Number</label>
+          <input
+            type="text"
+            id="senderAccount"
+            class="form-control"
+            placeholder="Enter sender's account number"
+            required
+            pattern="[0-9]{10}"
+            maxlength="10"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <span>Verify Payment</span>
+          <div class="loading-spinner"></div>
+        </button>
+      </form>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Success Modal -->
+    <div class="modal modal-success" id="successModal">
+      <div class="modal-content">
+        <span class="close-modal" id="closeSuccessModal">&times;</span>
+        <div class="modal-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="modal-title">Success!</h3>
+        <p class="modal-message" id="successMessage">
+          Your payment verification has been submitted successfully. Your wallet
+          will be credited once approved by admin.
+        </p>
+        <button class="btn btn-primary btn-block" id="successModalBtn">
+          Continue
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal modal-error" id="errorModal">
+      <div class="modal-content">
+        <span class="close-modal" id="closeErrorModal">&times;</span>
+        <div class="modal-icon">
+          <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3 class="modal-title">Oops!</h3>
+        <p class="modal-message" id="errorMessage">
+          Something went wrong. Please try again.
+        </p>
+        <button class="btn btn-primary btn-block" id="errorModalBtn">
+          Try Again
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="container bottom-nav-container">
+        <a href="main.html" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-wallet"></i>
+          <span>Withdraw</span>
+        </a>
+        <a href="recharge.html" class="nav-item active">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Recharge</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-info-circle"></i>
+          <span>Info</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCgOvIkDCcS3DFrt5f6Y7pYmjCoHIfDF9U",
+        authDomain: "moniebase-b4b4d.firebaseapp.com",
+        projectId: "moniebase-b4b4d",
+        storageBucket: "moniebase-b4b4d.appspot.com",
+        messagingSenderId: "1009678808253",
+        appId: "1:1009678808253:android:ff94e94c52bad2db7973d4",
+        databaseURL: "https://moniebase-b4b4d-default-rtdb.firebaseio.com/",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      // DOM Elements
+      const paymentConfirmBtn = document.getElementById("paymentConfirmBtn");
+      const paymentBottomSheet = document.getElementById("paymentBottomSheet");
+      const closeBottomSheet = document.getElementById("closeBottomSheet");
+      const overlay = document.getElementById("overlay");
+      const paymentConfirmationForm = document.getElementById(
+        "paymentConfirmationForm"
+      );
+      const successModal = document.getElementById("successModal");
+      const errorModal = document.getElementById("errorModal");
+      const successMessage = document.getElementById("successMessage");
+      const errorMessage = document.getElementById("errorMessage");
+      const closeSuccessModal = document.getElementById("closeSuccessModal");
+      const closeErrorModal = document.getElementById("closeErrorModal");
+      const successModalBtn = document.getElementById("successModalBtn");
+      const errorModalBtn = document.getElementById("errorModalBtn");
+
+      // Current User Data
+      let currentUser = null;
+
+      // Format number with commas
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Show bottom sheet
+      function showBottomSheet() {
+        paymentBottomSheet.classList.add("active");
+        overlay.classList.add("active");
+        document.body.style.overflow = "hidden";
+      }
+
+      // Hide bottom sheet
+      function hideBottomSheet() {
+        paymentBottomSheet.classList.remove("active");
+        overlay.classList.remove("active");
+        document.body.style.overflow = "";
+      }
+
+      // Show success modal
+      function showSuccess(message) {
+        successMessage.textContent = message;
+        successModal.style.display = "flex";
+      }
+
+      // Show error modal
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorModal.style.display = "flex";
+      }
+
+      // Close modals
+      function closeModals() {
+        successModal.style.display = "none";
+        errorModal.style.display = "none";
+      }
+
+      // Initialize the app
+      function initApp() {
+        // Check if user is logged in
+        const user = localStorage.getItem("superMarioUser");
+        if (!user) {
+          window.location.href = "register.html";
+          return;
+        }
+
+        currentUser = JSON.parse(user);
+
+        // Event listeners
+        paymentConfirmBtn.addEventListener("click", showBottomSheet);
+        closeBottomSheet.addEventListener("click", hideBottomSheet);
+        overlay.addEventListener("click", hideBottomSheet);
+
+        // Form submission
+        paymentConfirmationForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const amount = document.getElementById("amount").value;
+          const senderName = document.getElementById("senderName").value.trim();
+          const senderAccount = document
+            .getElementById("senderAccount")
+            .value.trim();
+          const submitBtn = paymentConfirmationForm.querySelector(
+            "button[type='submit']"
+          );
+
+          // Validate amount
+          if (amount < 3000 || amount > 500000) {
+            showError("Amount must be between ₦3,000 and ₦500,000");
+            return;
+          }
+
+          // Validate account number
+          if (!/^\d{10}$/.test(senderAccount)) {
+            showError("Please enter a valid 10-digit account number");
+            return;
+          }
+
+          // Show loading state
+          submitBtn.classList.add("loading");
+
+          try {
+            // Create payment record
+            const paymentId = Date.now().toString();
+            const paymentData = {
+              userId: currentUser.phone,
+              amount: parseInt(amount),
+              senderName,
+              senderAccount,
+              status: "pending",
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+            };
+
+            await database.ref("payments/" + paymentId).set(paymentData);
+
+            // Show success message
+            showSuccess(
+              `Your payment of ₦${formatNumber(
+                amount
+              )} has been submitted for verification. It will be processed within 1-2 hours.`
+            );
+
+            // Reset form
+            paymentConfirmationForm.reset();
+            hideBottomSheet();
+          } catch (error) {
+            console.error("Payment submission error:", error);
+            showError("An error occurred. Please try again.");
+          } finally {
+            submitBtn.classList.remove("loading");
+          }
+        });
+
+        // Modal event listeners
+        closeSuccessModal.addEventListener("click", closeModals);
+        closeErrorModal.addEventListener("click", closeModals);
+        successModalBtn.addEventListener("click", closeModals);
+        errorModalBtn.addEventListener("click", closeModals);
+
+        // Close modals when clicking outside
+        window.addEventListener("click", (e) => {
+          if (e.target === successModal || e.target === errorModal) {
+            closeModals();
+          }
+        });
+
+        // Header scroll effect
+        const header = document.getElementById("header");
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
+        });
+
+        // Bottom nav active state
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            if (
+              !item.getAttribute("href") ||
+              item.getAttribute("href") === "#"
+            ) {
+              e.preventDefault();
+            }
+            navItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+          });
+        });
+
+        // Prevent Chrome from tagging the site as dangerous
+        // This is a workaround for Chrome's password saving warning
+        document.querySelectorAll("input[type='password']").forEach((input) => {
+          input.setAttribute("readonly", "readonly");
+          input.addEventListener("focus", function () {
+            this.removeAttribute("readonly");
+          });
+        });
+
+        // Another workaround for Chrome's autofill warnings
+        document.addEventListener("DOMContentLoaded", () => {
+          setTimeout(() => {
+            const inputs = document.querySelectorAll("input");
+            inputs.forEach((input) => {
+              if (input.value) {
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+              }
+            });
+          }, 100);
+        });
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+  </body>
+</html>
