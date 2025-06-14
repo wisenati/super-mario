@@ -1,0 +1,4090 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Mario - Admin Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --dark-red: #d00000;
+        --white: #ffffff;
+        --light-gray: #f8f9fa;
+        --dark-gray: #333333;
+        --gold: #ffd700;
+        --light-red: rgba(230, 57, 70, 0.1);
+        --success-green: #27ae60;
+        --error-red: #e74c3c;
+        --overlay: rgba(0, 0, 0, 0.7);
+        --primary-gradient: linear-gradient(135deg, #e63946 0%, #d00000 100%);
+        --gold-gradient: linear-gradient(135deg, #ffd700 0%, #daa520 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #1a1a2e 100%);
+        --sidebar-width: 280px;
+        --header-height: 70px;
+        --transition-speed: 0.3s;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        overflow-x: hidden;
+        min-height: 100vh;
+      }
+
+      /* Scrollbar Styles */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-red);
+      }
+
+      /* Admin Layout */
+      .admin-layout {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: var(--sidebar-width);
+        background: var(--dark-gradient);
+        color: var(--white);
+        position: fixed;
+        height: 100vh;
+        left: 0;
+        top: 0;
+        z-index: 1000;
+        transition: transform var(--transition-speed) ease;
+        box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(-100%);
+      }
+
+      .sidebar-header {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .sidebar-logo {
+        width: 40px;
+        height: 40px;
+        animation: pulse 2s infinite;
+      }
+
+      .sidebar-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--white);
+      }
+
+      .sidebar-menu {
+        padding: 20px 0;
+      }
+
+      .menu-category {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 1px;
+        margin-top: 15px;
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 15px 20px;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+      }
+
+      .menu-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+      }
+
+      .menu-item.active {
+        background-color: rgba(230, 57, 70, 0.2);
+        color: var(--white);
+        border-left: 3px solid var(--primary-red);
+      }
+
+      .menu-icon {
+        margin-right: 15px;
+        width: 20px;
+        text-align: center;
+      }
+
+      .menu-text {
+        flex: 1;
+        font-weight: 500;
+      }
+
+      .menu-badge {
+        background-color: var(--primary-red);
+        color: var(--white);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 600;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        transition: margin var(--transition-speed) ease;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .main-content.expanded {
+        margin-left: 0;
+      }
+
+      /* Header */
+      .header {
+        height: var(--header-height);
+        background-color: var(--white);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px;
+        position: sticky;
+        top: 0;
+        z-index: 900;
+      }
+
+      .toggle-sidebar {
+        background: none;
+        border: none;
+        color: var(--dark-gray);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-sidebar:hover {
+        color: var(--primary-red);
+        transform: scale(1.1);
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .header-action {
+        background: none;
+        border: none;
+        color: var(--dark-gray);
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .header-action:hover {
+        color: var(--primary-red);
+      }
+
+      .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        background-color: var(--primary-red);
+        color: var(--white);
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        font-size: 0.7rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+
+      .admin-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 5px 10px;
+        border-radius: 30px;
+        transition: all 0.3s ease;
+      }
+
+      .admin-profile:hover {
+        background-color: var(--light-gray);
+      }
+
+      .admin-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-red);
+      }
+
+      .admin-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .admin-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .admin-role {
+        font-size: 0.7rem;
+        color: #666;
+      }
+
+      /* Dashboard Content */
+      .dashboard {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+      }
+
+      .dashboard-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 30px;
+        color: var(--dark-gray);
+        position: relative;
+        display: inline-block;
+      }
+
+      .dashboard-title::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 4px;
+        background-color: var(--primary-red);
+        bottom: -10px;
+        left: 0;
+        border-radius: 2px;
+      }
+
+      /* Stats Cards */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--primary-gradient);
+      }
+
+      .stat-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        font-size: 2.5rem;
+        opacity: 0.1;
+        color: var(--primary-red);
+      }
+
+      .stat-title {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark-gray);
+        margin-bottom: 5px;
+      }
+
+      .stat-change {
+        display: flex;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .stat-change.positive {
+        color: var(--success-green);
+      }
+
+      .stat-change.negative {
+        color: var(--error-red);
+      }
+
+      .stat-change i {
+        margin-right: 5px;
+      }
+
+      /* Section Styles */
+      .section {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title i {
+        color: var(--primary-red);
+      }
+
+      .section-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+      }
+
+      .btn-primary {
+        background: var(--primary-gradient);
+        color: var(--white);
+      }
+
+      .btn-primary:hover {
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--primary-red);
+        border: 1px solid var(--primary-red);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--primary-red);
+        color: var(--white);
+      }
+
+      .btn-success {
+        background-color: var(--success-green);
+        color: var(--white);
+      }
+
+      .btn-success:hover {
+        box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background-color: var(--error-red);
+        color: var(--white);
+      }
+
+      .btn-danger:hover {
+        box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        transform: translateY(-2px);
+      }
+
+      /* Table Styles */
+      .table-container {
+        overflow-x: auto;
+        margin-bottom: 20px;
+      }
+
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .admin-table th,
+      .admin-table td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      .admin-table th {
+        font-weight: 600;
+        color: #666;
+        background-color: var(--light-gray);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .admin-table tbody tr {
+        transition: all 0.3s ease;
+      }
+
+      .admin-table tbody tr:hover {
+        background-color: rgba(230, 57, 70, 0.05);
+      }
+
+      .table-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .action-btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .action-btn.edit {
+        background-color: #3498db;
+      }
+
+      .action-btn.delete {
+        background-color: var(--error-red);
+      }
+
+      .action-btn.view {
+        background-color: #2c3e50;
+      }
+
+      .action-btn.approve {
+        background-color: var(--success-green);
+      }
+
+      .action-btn.reject {
+        background-color: var(--error-red);
+      }
+
+      /* Status Badge */
+      .status-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+      }
+
+      .status-pending {
+        background-color: rgba(241, 196, 15, 0.2);
+        color: #f39c12;
+      }
+
+      .status-approved {
+        background-color: rgba(46, 204, 113, 0.2);
+        color: var(--success-green);
+      }
+
+      .status-rejected {
+        background-color: rgba(231, 76, 60, 0.2);
+        color: var(--error-red);
+      }
+
+      .status-active {
+        background-color: rgba(52, 152, 219, 0.2);
+        color: #3498db;
+      }
+
+      .status-completed {
+        background-color: rgba(155, 89, 182, 0.2);
+        color: #9b59b6;
+      }
+
+      /* Search and Filter */
+      .search-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .search-box {
+        flex: 1;
+        min-width: 250px;
+        position: relative;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px 15px 12px 40px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .search-input:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        outline: none;
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #999;
+      }
+
+      .filter-dropdown {
+        min-width: 150px;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+        background-size: 1em;
+        transition: all 0.3s ease;
+      }
+
+      .filter-dropdown:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        outline: none;
+      }
+
+      /* Pagination */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .page-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        background-color: var(--white);
+        color: var(--dark-gray);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .page-btn:hover {
+        border-color: var(--primary-red);
+        color: var(--primary-red);
+      }
+
+      .page-btn.active {
+        background-color: var(--primary-red);
+        color: var(--white);
+        border-color: var(--primary-red);
+      }
+
+      .page-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Modal Styles */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--overlay);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background-color: var(--white);
+        border-radius: 15px;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        animation: slideUp 0.3s ease-out;
+      }
+
+      .modal-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+      }
+
+      .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .close-modal:hover {
+        color: var(--primary-red);
+        transform: rotate(90deg);
+      }
+
+      .modal-body {
+        padding: 25px;
+      }
+
+      .modal-footer {
+        padding: 20px 25px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+      }
+
+      /* Form Styles */
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark-gray);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-family: "Montserrat", sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-red);
+        box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.2);
+        outline: none;
+      }
+
+      textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .form-col {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      /* User Details Card */
+      .user-details-card {
+        background-color: var(--light-gray);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+
+      .user-details-row {
+        display: flex;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+      }
+
+      .user-details-row:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+      }
+
+      .user-details-label {
+        width: 150px;
+        font-weight: 600;
+        color: #666;
+      }
+
+      .user-details-value {
+        flex: 1;
+        font-weight: 500;
+      }
+
+      /* Gift Code Section */
+      .gift-code-card {
+        background: var(--gold-gradient);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .gift-code-card::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 100px;
+        height: 100px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+      }
+
+      .gift-code-card::after {
+        content: "";
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 100px;
+        height: 100px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+      }
+
+      .gift-code-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .gift-code-title i {
+        color: var(--dark-gray);
+      }
+
+      .gift-code-form {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .gift-code-input {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--overlay);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 20px;
+        color: var(--white);
+        font-weight: 600;
+      }
+
+      .loading-overlay .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border-width: 5px;
+      }
+
+      /* Toast Notifications */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .toast {
+        padding: 15px 20px;
+        border-radius: 8px;
+        background-color: var(--white);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        min-width: 300px;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease-out, fadeOut 0.3s ease-out 3s forwards;
+        position: relative;
+      }
+
+      .toast-icon {
+        font-size: 1.5rem;
+      }
+
+      .toast-content {
+        flex: 1;
+      }
+
+      .toast-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+
+      .toast-message {
+        font-size: 0.9rem;
+        color: #666;
+      }
+
+      .toast-close {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #999;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toast-close:hover {
+        color: var(--dark-gray);
+      }
+
+      .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background-color: var(--primary-red);
+        animation: progress 3s linear;
+      }
+
+      .toast.success .toast-icon {
+        color: var(--success-green);
+      }
+
+      .toast.success .toast-progress {
+        background-color: var(--success-green);
+      }
+
+      .toast.error .toast-icon {
+        color: var(--error-red);
+      }
+
+      .toast.error .toast-progress {
+        background-color: var(--error-red);
+      }
+
+      .toast.warning .toast-icon {
+        color: #f39c12;
+      }
+
+      .toast.warning .toast-progress {
+        background-color: #f39c12;
+      }
+
+      /* Mobile Drawer */
+      .mobile-drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--overlay);
+        z-index: 1001;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .mobile-drawer-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+        }
+        to {
+          opacity: 0;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100%);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes progress {
+        from {
+          width: 100%;
+        }
+        to {
+          width: 0%;
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 1200px) {
+        .sidebar {
+          width: 240px;
+        }
+
+        .main-content {
+          margin-left: 240px;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+      }
+
+      @media (max-width: 992px) {
+        .sidebar {
+          transform: translateX(-100%);
+        }
+
+        .sidebar.active {
+          transform: translateX(0);
+        }
+
+        .main-content {
+          margin-left: 0;
+        }
+
+        .mobile-drawer-overlay {
+          display: block;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .dashboard {
+          padding: 20px;
+        }
+
+        .header {
+          padding: 0 20px;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(100%, 1fr));
+        }
+
+        .admin-profile .admin-info {
+          display: none;
+        }
+
+        .section {
+          padding: 20px;
+        }
+
+        .section-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+        }
+
+        .search-filter {
+          flex-direction: column;
+        }
+
+        .modal {
+          width: 95%;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .dashboard {
+          padding: 15px;
+        }
+
+        .dashboard-title {
+          font-size: 1.5rem;
+        }
+
+        .section {
+          padding: 15px;
+        }
+
+        .section-title {
+          font-size: 1.1rem;
+        }
+
+        .admin-table th,
+        .admin-table td {
+          padding: 10px;
+        }
+
+        .table-actions {
+          flex-direction: column;
+          gap: 5px;
+        }
+
+        .action-btn {
+          width: 28px;
+          height: 28px;
+          font-size: 0.8rem;
+        }
+
+        .modal-header,
+        .modal-body,
+        .modal-footer {
+          padding: 15px;
+        }
+
+        .toast {
+          min-width: auto;
+          max-width: 90%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Admin Layout -->
+    <div class="admin-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+            alt="Super Mario Logo"
+            class="sidebar-logo"
+          />
+          <h1 class="sidebar-title">Super Mario</h1>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Dashboard</div>
+          <a class="menu-item active" data-section="dashboard">
+            <span class="menu-icon"><i class="fas fa-chart-line"></i></span>
+            <span class="menu-text">Overview</span>
+          </a>
+
+          <div class="menu-category">User Management</div>
+          <a class="menu-item" data-section="users">
+            <span class="menu-icon"><i class="fas fa-users"></i></span>
+            <span class="menu-text">Users</span>
+          </a>
+
+          <div class="menu-category">Transactions</div>
+          <a class="menu-item" data-section="withdrawals">
+            <span class="menu-icon"
+              ><i class="fas fa-money-bill-wave"></i
+            ></span>
+            <span class="menu-text">Withdrawals</span>
+            <span class="menu-badge" id="withdrawalsBadge">0</span>
+          </a>
+          <a class="menu-item" data-section="recharges">
+            <span class="menu-icon"><i class="fas fa-wallet"></i></span>
+            <span class="menu-text">Recharges</span>
+            <span class="menu-badge" id="rechargesBadge">0</span>
+          </a>
+
+          <div class="menu-category">Investments</div>
+          <a class="menu-item" data-section="investments">
+            <span class="menu-icon"><i class="fas fa-chart-pie"></i></span>
+            <span class="menu-text">Investment Plans</span>
+          </a>
+
+          <div class="menu-category">Settings</div>
+          <a class="menu-item" data-section="gift-codes">
+            <span class="menu-icon"><i class="fas fa-gift"></i></span>
+            <span class="menu-text">Gift Codes</span>
+          </a>
+          <a class="menu-item" data-section="settings">
+            <span class="menu-icon"><i class="fas fa-cog"></i></span>
+            <span class="menu-text">Settings</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content" id="mainContent">
+        <!-- Header -->
+        <header class="header">
+          <button class="toggle-sidebar" id="toggleSidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="header-actions">
+            <button class="header-action" id="refreshData">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+            <button class="header-action" id="notificationsBtn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge" id="notificationBadge">0</span>
+            </button>
+            <div class="admin-profile">
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                alt="Admin Avatar"
+                class="admin-avatar"
+              />
+              <div class="admin-info">
+                <div class="admin-name">Admin User</div>
+                <div class="admin-role">Super Admin</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard">
+          <!-- Dashboard Overview Section -->
+          <section id="dashboardSection" class="content-section">
+            <h1 class="dashboard-title">Dashboard Overview</h1>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-title">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-change positive">
+                  <i class="fas fa-arrow-up"></i>
+                  <span id="newUsers">0</span> new today
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="stat-title">Pending Withdrawals</div>
+                <div class="stat-value" id="pendingWithdrawals">₦0</div>
+                <div class="stat-change">
+                  <span id="withdrawalCount">0</span> requests
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-wallet"></i>
+                </div>
+                <div class="stat-title">Pending Recharges</div>
+                <div class="stat-value" id="pendingRecharges">₦0</div>
+                <div class="stat-change">
+                  <span id="rechargeCount">0</span> requests
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon">
+                  <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-title">Active Investments</div>
+                <div class="stat-value" id="activeInvestments">0</div>
+                <div class="stat-change positive">
+                  <i class="fas fa-arrow-up"></i>
+                  <span id="investmentGrowth">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activities Section -->
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-history"></i> Recent Activities
+                </h2>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="activitiesTable">
+                  <thead>
+                    <tr>
+                      <th>Activity</th>
+                      <th>User</th>
+                      <th>Details</th>
+                      <th>Date & Time</th>
+                    </tr>
+                  </thead>
+                  <tbody id="activitiesTableBody">
+                    <!-- Activities will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Users Section -->
+          <section
+            id="usersSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">User Management</h1>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-users"></i> All Users
+                </h2>
+                <div class="section-actions">
+                  <button class="btn btn-primary" id="addUserBtn">
+                    <i class="fas fa-plus"></i> Add User
+                  </button>
+                </div>
+              </div>
+
+              <div class="search-filter">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input
+                    type="text"
+                    class="search-input"
+                    id="userSearchInput"
+                    placeholder="Search users by phone or name..."
+                  />
+                </div>
+                <select class="filter-dropdown" id="userStatusFilter">
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="usersTable">
+                  <thead>
+                    <tr>
+                      <th>Phone</th>
+                      <th>Balance</th>
+                      <th>Referrals</th>
+                      <th>Investments</th>
+                      <th>Status</th>
+                      <th>Joined Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody">
+                    <!-- Users will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="usersPagination">
+                <!-- Pagination will be generated here -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Withdrawals Section -->
+          <section
+            id="withdrawalsSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">Withdrawal Requests</h1>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-money-bill-wave"></i> Withdrawal Requests
+                </h2>
+              </div>
+
+              <div class="search-filter">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input
+                    type="text"
+                    class="search-input"
+                    id="withdrawalSearchInput"
+                    placeholder="Search by user phone or account..."
+                  />
+                </div>
+                <select class="filter-dropdown" id="withdrawalStatusFilter">
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="withdrawalsTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Amount</th>
+                      <th>Bank</th>
+                      <th>Account</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="withdrawalsTableBody">
+                    <!-- Withdrawals will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="withdrawalsPagination">
+                <!-- Pagination will be generated here -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Recharges Section -->
+          <section
+            id="rechargesSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">Recharge Requests</h1>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-wallet"></i> Recharge Requests
+                </h2>
+              </div>
+
+              <div class="search-filter">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input
+                    type="text"
+                    class="search-input"
+                    id="rechargeSearchInput"
+                    placeholder="Search by user phone or sender name..."
+                  />
+                </div>
+                <select class="filter-dropdown" id="rechargeStatusFilter">
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="rechargesTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Amount</th>
+                      <th>Sender</th>
+                      <th>Account</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rechargesTableBody">
+                    <!-- Recharges will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="rechargesPagination">
+                <!-- Pagination will be generated here -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Investments Section -->
+          <section
+            id="investmentsSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">Investment Plans</h1>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-chart-pie"></i> Active Investments
+                </h2>
+              </div>
+
+              <div class="search-filter">
+                <div class="search-box">
+                  <i class="fas fa-search search-icon"></i>
+                  <input
+                    type="text"
+                    class="search-input"
+                    id="investmentSearchInput"
+                    placeholder="Search by user phone or package..."
+                  />
+                </div>
+                <select class="filter-dropdown" id="investmentPackageFilter">
+                  <option value="all">All Packages</option>
+                  <option value="mario1">Mario 1</option>
+                  <option value="mario2">Mario 2</option>
+                  <option value="mario3">Mario 3</option>
+                  <option value="mario4">Mario 4</option>
+                  <option value="mario5">Mario 5</option>
+                  <option value="mario6">Mario 6</option>
+                  <option value="mario7">Mario 7</option>
+                  <option value="mario8">Mario 8</option>
+                </select>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="investmentsTable">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Package</th>
+                      <th>Amount</th>
+                      <th>Daily Income</th>
+                      <th>Days Completed</th>
+                      <th>Start Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="investmentsTableBody">
+                    <!-- Investments will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="pagination" id="investmentsPagination">
+                <!-- Pagination will be generated here -->
+              </div>
+            </div>
+          </section>
+
+          <!-- Gift Codes Section -->
+          <section
+            id="gift-codesSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">Gift Codes Management</h1>
+
+            <div class="gift-code-card">
+              <h3 class="gift-code-title">
+                <i class="fas fa-gift"></i> Create New Gift Code
+              </h3>
+              <div class="gift-code-form">
+                <div class="gift-code-input">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="newGiftCode"
+                    placeholder="Enter gift code (e.g., SUPER2025)"
+                  />
+                </div>
+                <div class="gift-code-input">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="giftAmount"
+                    placeholder="Amount (₦)"
+                    min="100"
+                  />
+                </div>
+                <div class="gift-code-input">
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="maxRedemptions"
+                    placeholder="Max redemptions"
+                    min="1"
+                  />
+                </div>
+                <button class="btn btn-primary" id="createGiftCodeBtn">
+                  <i class="fas fa-plus"></i> Create Gift Code
+                </button>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-gift"></i> Active Gift Codes
+                </h2>
+              </div>
+
+              <div class="table-container">
+                <table class="admin-table" id="giftCodesTable">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Amount</th>
+                      <th>Redemptions</th>
+                      <th>Max Redemptions</th>
+                      <th>Created Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="giftCodesTableBody">
+                    <!-- Gift codes will be loaded here -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- Settings Section -->
+          <section
+            id="settingsSection"
+            class="content-section"
+            style="display: none"
+          >
+            <h1 class="dashboard-title">System Settings</h1>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-cog"></i> Platform Settings
+                </h2>
+              </div>
+
+              <form id="settingsForm">
+                <div class="form-group">
+                  <label for="platformName">Platform Name</label>
+                  <input
+                    type="text"
+                    id="platformName"
+                    class="form-control"
+                    value="Super Mario"
+                  />
+                </div>
+
+                <div class="form-row">
+                  <div class="form-col">
+                    <div class="form-group">
+                      <label for="minWithdrawal">Minimum Withdrawal (₦)</label>
+                      <input
+                        type="number"
+                        id="minWithdrawal"
+                        class="form-control"
+                        value="1000"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-col">
+                    <div class="form-group">
+                      <label for="maxWithdrawal">Maximum Withdrawal (₦)</label>
+                      <input
+                        type="number"
+                        id="maxWithdrawal"
+                        class="form-control"
+                        value="500000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-col">
+                    <div class="form-group">
+                      <label for="minRecharge">Minimum Recharge (₦)</label>
+                      <input
+                        type="number"
+                        id="minRecharge"
+                        class="form-control"
+                        value="3000"
+                      />
+                    </div>
+                  </div>
+                  <div class="form-col">
+                    <div class="form-group">
+                      <label for="maxRecharge">Maximum Recharge (₦)</label>
+                      <input
+                        type="number"
+                        id="maxRecharge"
+                        class="form-control"
+                        value="500000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="welcomeBonus">Welcome Bonus (₦)</label>
+                  <input
+                    type="number"
+                    id="welcomeBonus"
+                    class="form-control"
+                    value="200"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="referralBonus">Referral Bonus (%)</label>
+                  <input
+                    type="number"
+                    id="referralBonus"
+                    class="form-control"
+                    value="5"
+                  />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> Save Settings
+                </button>
+              </form>
+            </div>
+
+            <div class="section">
+              <div class="section-header">
+                <h2 class="section-title">
+                  <i class="fas fa-user-shield"></i> Admin Account
+                </h2>
+              </div>
+
+              <form id="adminPasswordForm">
+                <div class="form-group">
+                  <label for="currentPassword">Current Password</label>
+                  <input
+                    type="password"
+                    id="currentPassword"
+                    class="form-control"
+                    placeholder="Enter current password"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="newPassword">New Password</label>
+                  <input
+                    type="password"
+                    id="newPassword"
+                    class="form-control"
+                    placeholder="Enter new password"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="confirmPassword">Confirm New Password</label>
+                  <input
+                    type="password"
+                    id="confirmPassword"
+                    class="form-control"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-key"></i> Change Password
+                </button>
+              </form>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Mobile Drawer Overlay -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- User Edit Modal -->
+    <div class="modal-overlay" id="userEditModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Edit User</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editUserForm">
+            <input type="hidden" id="editUserId" />
+            <div class="form-group">
+              <label for="editUserPhone">Phone Number</label>
+              <input
+                type="tel"
+                id="editUserPhone"
+                class="form-control"
+                readonly
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editUserBalance">Balance (₦)</label>
+              <input
+                type="number"
+                id="editUserBalance"
+                class="form-control"
+                min="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editUserReferrals">Referrals</label>
+              <input
+                type="number"
+                id="editUserReferrals"
+                class="form-control"
+                min="0"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="editUserStatus">Status</label>
+              <select id="editUserStatus" class="form-control">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" id="saveUserBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User View Modal -->
+    <div class="modal-overlay" id="userViewModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">User Details</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="user-details-card">
+            <div class="user-details-row">
+              <div class="user-details-label">Phone Number</div>
+              <div class="user-details-value" id="viewUserPhone"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Balance</div>
+              <div class="user-details-value" id="viewUserBalance"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Referrals</div>
+              <div class="user-details-value" id="viewUserReferrals"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Status</div>
+              <div class="user-details-value" id="viewUserStatus"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Joined Date</div>
+              <div class="user-details-value" id="viewUserJoined"></div>
+            </div>
+          </div>
+
+          <h4 style="margin-bottom: 15px">User Investments</h4>
+          <div class="table-container">
+            <table class="admin-table" id="userInvestmentsTable">
+              <thead>
+                <tr>
+                  <th>Package</th>
+                  <th>Amount</th>
+                  <th>Daily Income</th>
+                  <th>Days Completed</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="userInvestmentsTableBody">
+                <!-- User investments will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" data-dismiss="modal">Close</button>
+          <button class="btn btn-primary" id="editUserFromViewBtn">
+            Edit User
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawal View Modal -->
+    <div class="modal-overlay" id="withdrawalViewModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Withdrawal Request Details</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="user-details-card">
+            <div class="user-details-row">
+              <div class="user-details-label">User Phone</div>
+              <div class="user-details-value" id="viewWithdrawalUser"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Amount</div>
+              <div class="user-details-value" id="viewWithdrawalAmount"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Bank</div>
+              <div class="user-details-value" id="viewWithdrawalBank"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Account Number</div>
+              <div class="user-details-value" id="viewWithdrawalAccount"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Account Name</div>
+              <div class="user-details-value" id="viewWithdrawalName"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Status</div>
+              <div class="user-details-value" id="viewWithdrawalStatus"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Date</div>
+              <div class="user-details-value" id="viewWithdrawalDate"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="withdrawalActionFooter">
+          <button class="btn btn-outline" data-dismiss="modal">Close</button>
+          <button class="btn btn-danger" id="rejectWithdrawalBtn">
+            Reject
+          </button>
+          <button class="btn btn-success" id="approveWithdrawalBtn">
+            Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recharge View Modal -->
+    <div class="modal-overlay" id="rechargeViewModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Recharge Request Details</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="user-details-card">
+            <div class="user-details-row">
+              <div class="user-details-label">User Phone</div>
+              <div class="user-details-value" id="viewRechargeUser"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Amount</div>
+              <div class="user-details-value" id="viewRechargeAmount"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Sender Name</div>
+              <div class="user-details-value" id="viewRechargeSender"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Sender Account</div>
+              <div class="user-details-value" id="viewRechargeAccount"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Status</div>
+              <div class="user-details-value" id="viewRechargeStatus"></div>
+            </div>
+            <div class="user-details-row">
+              <div class="user-details-label">Date</div>
+              <div class="user-details-value" id="viewRechargeDate"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer" id="rechargeActionFooter">
+          <button class="btn btn-outline" data-dismiss="modal">Close</button>
+          <button class="btn btn-danger" id="rejectRechargeBtn">Reject</button>
+          <button class="btn btn-success" id="approveRechargeBtn">
+            Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal-overlay" id="addUserModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Add New User</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="addUserForm">
+            <div class="form-group">
+              <label for="newUserPhone">Phone Number</label>
+              <input
+                type="tel"
+                id="newUserPhone"
+                class="form-control"
+                placeholder="Enter 11-digit phone number"
+                pattern="[0-9]{11}"
+                maxlength="11"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="newUserPassword">Password</label>
+              <input
+                type="password"
+                id="newUserPassword"
+                class="form-control"
+                placeholder="Enter password"
+                minlength="6"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="newUserBalance">Initial Balance (₦)</label>
+              <input
+                type="number"
+                id="newUserBalance"
+                class="form-control"
+                value="200"
+                min="0"
+              />
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-primary" id="saveNewUserBtn">Add User</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Confirm Deletion</h3>
+          <button class="close-modal" data-dismiss="modal">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="deleteConfirmMessage">
+            Are you sure you want to delete this item? This action cannot be
+            undone.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" data-dismiss="modal">Cancel</button>
+          <button class="btn btn-danger" id="confirmDeleteBtn">
+            Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none">
+      <div class="loading-spinner"></div>
+      <div>Loading...</div>
+    </div>
+
+    <script>
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCgOvIkDCcS3DFrt5f6Y7pYmjCoHIfDF9U",
+        authDomain: "moniebase-b4b4d.firebaseapp.com",
+        projectId: "moniebase-b4b4d",
+        storageBucket: "moniebase-b4b4d.appspot.com",
+        messagingSenderId: "1009678808253",
+        appId: "1:1009678808253:android:ff94e94c52bad2db7973d4",
+        databaseURL: "https://moniebase-b4b4d-default-rtdb.firebaseio.com/",
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      // DOM Elements
+      const sidebar = document.getElementById("sidebar");
+      const mainContent = document.getElementById("mainContent");
+      const toggleSidebarBtn = document.getElementById("toggleSidebar");
+      const mobileDrawerOverlay = document.getElementById(
+        "mobileDrawerOverlay"
+      );
+      const menuItems = document.querySelectorAll(".menu-item");
+      const contentSections = document.querySelectorAll(".content-section");
+      const loadingOverlay = document.getElementById("loadingOverlay");
+      const toastContainer = document.getElementById("toastContainer");
+      const refreshDataBtn = document.getElementById("refreshData");
+
+      // Counters and badges
+      const totalUsersElement = document.getElementById("totalUsers");
+      const newUsersElement = document.getElementById("newUsers");
+      const pendingWithdrawalsElement =
+        document.getElementById("pendingWithdrawals");
+      const withdrawalCountElement = document.getElementById("withdrawalCount");
+      const pendingRechargesElement =
+        document.getElementById("pendingRecharges");
+      const rechargeCountElement = document.getElementById("rechargeCount");
+      const activeInvestmentsElement =
+        document.getElementById("activeInvestments");
+      const investmentGrowthElement =
+        document.getElementById("investmentGrowth");
+      const withdrawalsBadge = document.getElementById("withdrawalsBadge");
+      const rechargesBadge = document.getElementById("rechargesBadge");
+      const notificationBadge = document.getElementById("notificationBadge");
+
+      // Table bodies
+      const activitiesTableBody = document.getElementById(
+        "activitiesTableBody"
+      );
+      const usersTableBody = document.getElementById("usersTableBody");
+      const withdrawalsTableBody = document.getElementById(
+        "withdrawalsTableBody"
+      );
+      const rechargesTableBody = document.getElementById("rechargesTableBody");
+      const investmentsTableBody = document.getElementById(
+        "investmentsTableBody"
+      );
+      const giftCodesTableBody = document.getElementById("giftCodesTableBody");
+      const userInvestmentsTableBody = document.getElementById(
+        "userInvestmentsTableBody"
+      );
+
+      // Pagination elements
+      const usersPagination = document.getElementById("usersPagination");
+      const withdrawalsPagination = document.getElementById(
+        "withdrawalsPagination"
+      );
+      const rechargesPagination = document.getElementById(
+        "rechargesPagination"
+      );
+      const investmentsPagination = document.getElementById(
+        "investmentsPagination"
+      );
+
+      // Search and filter elements
+      const userSearchInput = document.getElementById("userSearchInput");
+      const userStatusFilter = document.getElementById("userStatusFilter");
+      const withdrawalSearchInput = document.getElementById(
+        "withdrawalSearchInput"
+      );
+      const withdrawalStatusFilter = document.getElementById(
+        "withdrawalStatusFilter"
+      );
+      const rechargeSearchInput = document.getElementById(
+        "rechargeSearchInput"
+      );
+      const rechargeStatusFilter = document.getElementById(
+        "rechargeStatusFilter"
+      );
+      const investmentSearchInput = document.getElementById(
+        "investmentSearchInput"
+      );
+      const investmentPackageFilter = document.getElementById(
+        "investmentPackageFilter"
+      );
+
+      // Modal elements
+      const userEditModal = document.getElementById("userEditModal");
+      const userViewModal = document.getElementById("userViewModal");
+      const withdrawalViewModal = document.getElementById(
+        "withdrawalViewModal"
+      );
+      const rechargeViewModal = document.getElementById("rechargeViewModal");
+      const addUserModal = document.getElementById("addUserModal");
+      const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+
+      // Form elements
+      const editUserForm = document.getElementById("editUserForm");
+      const addUserForm = document.getElementById("addUserForm");
+      const settingsForm = document.getElementById("settingsForm");
+      const adminPasswordForm = document.getElementById("adminPasswordForm");
+
+      // Button elements
+      const addUserBtn = document.getElementById("addUserBtn");
+      const saveUserBtn = document.getElementById("saveUserBtn");
+      const saveNewUserBtn = document.getElementById("saveNewUserBtn");
+      const editUserFromViewBtn = document.getElementById(
+        "editUserFromViewBtn"
+      );
+      const approveWithdrawalBtn = document.getElementById(
+        "approveWithdrawalBtn"
+      );
+      const rejectWithdrawalBtn = document.getElementById(
+        "rejectWithdrawalBtn"
+      );
+      const approveRechargeBtn = document.getElementById("approveRechargeBtn");
+      const rejectRechargeBtn = document.getElementById("rejectRechargeBtn");
+      const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+      const createGiftCodeBtn = document.getElementById("createGiftCodeBtn");
+
+      // Gift code elements
+      const newGiftCodeInput = document.getElementById("newGiftCode");
+      const giftAmountInput = document.getElementById("giftAmount");
+      const maxRedemptionsInput = document.getElementById("maxRedemptions");
+
+      // Global variables
+      let currentUser = null;
+      let currentDeleteItem = null;
+      let currentDeleteType = null;
+      let currentWithdrawal = null;
+      let currentRecharge = null;
+      let currentViewUser = null;
+
+      // Pagination variables
+      const itemsPerPage = 10;
+      let currentUserPage = 1;
+      let currentWithdrawalPage = 1;
+      let currentRechargePage = 1;
+      let currentInvestmentPage = 1;
+
+      // Data storage
+      let allUsers = [];
+      let filteredUsers = [];
+      let allWithdrawals = [];
+      let filteredWithdrawals = [];
+      let allRecharges = [];
+      let filteredRecharges = [];
+      let allInvestments = [];
+      let filteredInvestments = [];
+      let allGiftCodes = [];
+      let allActivities = [];
+
+      // Format number with commas
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Format date
+      function formatDate(timestamp) {
+        const date = new Date(timestamp);
+        return date.toLocaleString();
+      }
+
+      // Show loading overlay
+      function showLoading() {
+        loadingOverlay.style.display = "flex";
+      }
+
+      // Hide loading overlay
+      function hideLoading() {
+        loadingOverlay.style.display = "none";
+      }
+
+      // Show toast notification
+      function showToast(type, title, message) {
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+          <div class="toast-icon">
+            <i class="fas fa-${
+              type === "success"
+                ? "check-circle"
+                : type === "error"
+                ? "exclamation-circle"
+                : "exclamation-triangle"
+            }"></i>
+          </div>
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+          </div>
+          <button class="toast-close">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="toast-progress" style="width: 100%"></div>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        // Add event listener to close button
+        toast.querySelector(".toast-close").addEventListener("click", () => {
+          toast.remove();
+        });
+
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+
+      // Toggle sidebar
+      function toggleSidebar() {
+        sidebar.classList.toggle("collapsed");
+        mainContent.classList.toggle("expanded");
+        mobileDrawerOverlay.classList.toggle("active");
+      }
+
+      // Show section
+      function showSection(sectionId) {
+        // Hide all sections
+        contentSections.forEach((section) => {
+          section.style.display = "none";
+        });
+
+        // Show selected section
+        document.getElementById(`${sectionId}Section`).style.display = "block";
+
+        // Update active menu item
+        menuItems.forEach((item) => {
+          item.classList.remove("active");
+        });
+        document
+          .querySelector(`.menu-item[data-section="${sectionId}"]`)
+          .classList.add("active");
+
+        // Close sidebar on mobile
+        if (window.innerWidth < 992) {
+          toggleSidebar();
+        }
+      }
+
+      // Show modal
+      function showModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+      }
+
+      // Hide modal
+      function hideModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+      }
+
+      // Load dashboard data
+      async function loadDashboardData() {
+        showLoading();
+
+        try {
+          // Load users
+          const usersSnapshot = await database.ref("users").once("value");
+          allUsers = [];
+          let totalUsers = 0;
+          let newUsersToday = 0;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          usersSnapshot.forEach((userSnapshot) => {
+            const userData = userSnapshot.val();
+            userData.id = userSnapshot.key;
+            allUsers.push(userData);
+            totalUsers++;
+
+            // Check if user joined today
+            if (userData.createdAt && userData.createdAt > today.getTime()) {
+              newUsersToday++;
+            }
+          });
+
+          // Update user stats
+          totalUsersElement.textContent = totalUsers;
+          newUsersElement.textContent = newUsersToday;
+
+          // Load withdrawals
+          const withdrawalsSnapshot = await database
+            .ref("withdrawals")
+            .once("value");
+          allWithdrawals = [];
+          let pendingWithdrawalsCount = 0;
+          let pendingWithdrawalsAmount = 0;
+
+          withdrawalsSnapshot.forEach((withdrawalSnapshot) => {
+            const withdrawalData = withdrawalSnapshot.val();
+            withdrawalData.id = withdrawalSnapshot.key;
+            allWithdrawals.push(withdrawalData);
+
+            if (withdrawalData.status === "pending") {
+              pendingWithdrawalsCount++;
+              pendingWithdrawalsAmount += withdrawalData.amount;
+            }
+          });
+
+          // Update withdrawal stats
+          pendingWithdrawalsElement.textContent = `₦${formatNumber(
+            pendingWithdrawalsAmount
+          )}`;
+          withdrawalCountElement.textContent = pendingWithdrawalsCount;
+          withdrawalsBadge.textContent = pendingWithdrawalsCount;
+
+          // Load recharges
+          const rechargesSnapshot = await database
+            .ref("payments")
+            .once("value");
+          allRecharges = [];
+          let pendingRechargesCount = 0;
+          let pendingRechargesAmount = 0;
+
+          rechargesSnapshot.forEach((rechargeSnapshot) => {
+            const rechargeData = rechargeSnapshot.val();
+            rechargeData.id = rechargeSnapshot.key;
+            allRecharges.push(rechargeData);
+
+            if (rechargeData.status === "pending") {
+              pendingRechargesCount++;
+              pendingRechargesAmount += rechargeData.amount;
+            }
+          });
+
+          // Update recharge stats
+          pendingRechargesElement.textContent = `₦${formatNumber(
+            pendingRechargesAmount
+          )}`;
+          rechargeCountElement.textContent = pendingRechargesCount;
+          rechargesBadge.textContent = pendingRechargesCount;
+
+          // Load investments
+          allInvestments = [];
+          let activeInvestmentsCount = 0;
+
+          allUsers.forEach((user) => {
+            if (user.investments) {
+              Object.entries(user.investments).forEach(
+                ([investmentId, investment]) => {
+                  investment.id = investmentId;
+                  investment.userId = user.phone;
+                  allInvestments.push(investment);
+
+                  if (investment.status === "active") {
+                    activeInvestmentsCount++;
+                  }
+                }
+              );
+            }
+          });
+
+          // Update investment stats
+          activeInvestmentsElement.textContent = activeInvestmentsCount;
+          investmentGrowthElement.textContent = "5%"; // Example value
+
+          // Load gift codes
+          const giftCodesSnapshot = await database
+            .ref("giftCodes")
+            .once("value");
+          allGiftCodes = [];
+
+          giftCodesSnapshot.forEach((giftCodeSnapshot) => {
+            const giftCodeData = giftCodeSnapshot.val();
+            giftCodeData.id = giftCodeSnapshot.key;
+            allGiftCodes.push(giftCodeData);
+          });
+
+          // Load recent activities
+          allActivities = [];
+
+          // Add withdrawals to activities
+          allWithdrawals.slice(0, 10).forEach((withdrawal) => {
+            allActivities.push({
+              type: "withdrawal",
+              user: withdrawal.userId,
+              details: `Withdrawal request of ₦${formatNumber(
+                withdrawal.amount
+              )}`,
+              status: withdrawal.status,
+              timestamp: withdrawal.createdAt,
+            });
+          });
+
+          // Add recharges to activities
+          allRecharges.slice(0, 10).forEach((recharge) => {
+            allActivities.push({
+              type: "recharge",
+              user: recharge.userId,
+              details: `Recharge request of ₦${formatNumber(recharge.amount)}`,
+              status: recharge.status,
+              timestamp: recharge.createdAt,
+            });
+          });
+
+          // Sort activities by timestamp (newest first)
+          allActivities.sort((a, b) => b.timestamp - a.timestamp);
+
+          // Update activities table
+          updateActivitiesTable();
+
+          // Update notification badge
+          notificationBadge.textContent =
+            pendingWithdrawalsCount + pendingRechargesCount;
+
+          // Update tables
+          updateUsersTable();
+          updateWithdrawalsTable();
+          updateRechargesTable();
+          updateInvestmentsTable();
+          updateGiftCodesTable();
+
+          hideLoading();
+        } catch (error) {
+          console.error("Error loading dashboard data:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to load dashboard data. Please try again."
+          );
+          hideLoading();
+        }
+      }
+
+      // Update activities table
+      function updateActivitiesTable() {
+        activitiesTableBody.innerHTML = "";
+
+        // Get the 10 most recent activities
+        const recentActivities = allActivities.slice(0, 10);
+
+        if (recentActivities.length === 0) {
+          activitiesTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center;">No activities found</td>
+            </tr>
+          `;
+          return;
+        }
+
+        recentActivities.forEach((activity) => {
+          const row = document.createElement("tr");
+
+          let statusClass = "";
+          if (activity.status === "pending") statusClass = "status-pending";
+          else if (activity.status === "approved")
+            statusClass = "status-approved";
+          else if (activity.status === "rejected")
+            statusClass = "status-rejected";
+
+          row.innerHTML = `
+            <td>
+              <i class="fas fa-${
+                activity.type === "withdrawal" ? "money-bill-wave" : "wallet"
+              }" style="margin-right: 8px; color: var(--primary-red);"></i>
+              ${activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+            </td>
+            <td>${activity.user}</td>
+            <td>${activity.details}</td>
+            <td>${formatDate(activity.timestamp)}</td>
+          `;
+
+          activitiesTableBody.appendChild(row);
+        });
+      }
+
+      // Update users table
+      function updateUsersTable() {
+        // Apply filters
+        const searchTerm = userSearchInput.value.toLowerCase();
+        const statusFilter = userStatusFilter.value;
+
+        filteredUsers = allUsers.filter((user) => {
+          const matchesSearch = user.phone.toLowerCase().includes(searchTerm);
+          const matchesStatus =
+            statusFilter === "all" || user.status === statusFilter;
+          return matchesSearch && matchesStatus;
+        });
+
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+        const startIndex = (currentUserPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const usersToShow = filteredUsers.slice(startIndex, endIndex);
+
+        // Update table
+        usersTableBody.innerHTML = "";
+
+        if (usersToShow.length === 0) {
+          usersTableBody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center;">No users found</td>
+            </tr>
+          `;
+        } else {
+          usersToShow.forEach((user) => {
+            const row = document.createElement("tr");
+
+            // Count active investments
+            let activeInvestments = 0;
+            if (user.investments) {
+              Object.values(user.investments).forEach((investment) => {
+                if (investment.status === "active") {
+                  activeInvestments++;
+                }
+              });
+            }
+
+            const statusClass =
+              user.status === "active" ? "status-approved" : "status-rejected";
+
+            row.innerHTML = `
+              <td>${user.phone}</td>
+              <td>₦${formatNumber(user.balance || 0)}</td>
+              <td>${user.referrals || 0}</td>
+              <td>${activeInvestments}</td>
+              <td><span class="status-badge ${statusClass}">${
+              user.status || "active"
+            }</span></td>
+              <td>${user.createdAt ? formatDate(user.createdAt) : "N/A"}</td>
+              <td>
+                <div class="table-actions">
+                  <button class="action-btn view" data-user-id="${
+                    user.id
+                  }" title="View User">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="action-btn edit" data-user-id="${
+                    user.id
+                  }" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="action-btn delete" data-user-id="${
+                    user.id
+                  }" title="Delete User">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            `;
+
+            usersTableBody.appendChild(row);
+          });
+        }
+
+        // Update pagination
+        updatePagination(
+          usersPagination,
+          totalPages,
+          currentUserPage,
+          (page) => {
+            currentUserPage = page;
+            updateUsersTable();
+          }
+        );
+
+        // Add event listeners to action buttons
+        usersTableBody.querySelectorAll(".action-btn.view").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const userId = btn.getAttribute("data-user-id");
+            viewUser(userId);
+          });
+        });
+
+        usersTableBody.querySelectorAll(".action-btn.edit").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const userId = btn.getAttribute("data-user-id");
+            editUser(userId);
+          });
+        });
+
+        usersTableBody.querySelectorAll(".action-btn.delete").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const userId = btn.getAttribute("data-user-id");
+            confirmDeleteUser(userId);
+          });
+        });
+      }
+
+      // Update withdrawals table
+      function updateWithdrawalsTable() {
+        // Apply filters
+        const searchTerm = withdrawalSearchInput.value.toLowerCase();
+        const statusFilter = withdrawalStatusFilter.value;
+
+        filteredWithdrawals = allWithdrawals.filter((withdrawal) => {
+          const matchesSearch =
+            withdrawal.userId.toLowerCase().includes(searchTerm) ||
+            withdrawal.accountNumber.toLowerCase().includes(searchTerm);
+          const matchesStatus =
+            statusFilter === "all" || withdrawal.status === statusFilter;
+          return matchesSearch && matchesStatus;
+        });
+
+        // Sort by date (newest first)
+        filteredWithdrawals.sort((a, b) => b.createdAt - a.createdAt);
+
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredWithdrawals.length / itemsPerPage);
+        const startIndex = (currentWithdrawalPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const withdrawalsToShow = filteredWithdrawals.slice(
+          startIndex,
+          endIndex
+        );
+
+        // Update table
+        withdrawalsTableBody.innerHTML = "";
+
+        if (withdrawalsToShow.length === 0) {
+          withdrawalsTableBody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center;">No withdrawal requests found</td>
+            </tr>
+          `;
+        } else {
+          withdrawalsToShow.forEach((withdrawal) => {
+            const row = document.createElement("tr");
+
+            let statusClass = "";
+            if (withdrawal.status === "pending") statusClass = "status-pending";
+            else if (withdrawal.status === "approved")
+              statusClass = "status-approved";
+            else if (withdrawal.status === "rejected")
+              statusClass = "status-rejected";
+
+            row.innerHTML = `
+              <td>${withdrawal.userId}</td>
+              <td>₦${formatNumber(withdrawal.amount)}</td>
+              <td>${withdrawal.bank}</td>
+              <td>${withdrawal.accountNumber}</td>
+              <td><span class="status-badge ${statusClass}">${
+              withdrawal.status
+            }</span></td>
+              <td>${formatDate(withdrawal.createdAt)}</td>
+              <td>
+                <div class="table-actions">
+                  <button class="action-btn view" data-withdrawal-id="${
+                    withdrawal.id
+                  }" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  ${
+                    withdrawal.status === "pending"
+                      ? `
+                    <button class="action-btn approve" data-withdrawal-id="${withdrawal.id}" title="Approve">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn reject" data-withdrawal-id="${withdrawal.id}" title="Reject">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  `
+                      : ""
+                  }
+                </div>
+              </td>
+            `;
+
+            withdrawalsTableBody.appendChild(row);
+          });
+        }
+
+        // Update pagination
+        updatePagination(
+          withdrawalsPagination,
+          totalPages,
+          currentWithdrawalPage,
+          (page) => {
+            currentWithdrawalPage = page;
+            updateWithdrawalsTable();
+          }
+        );
+
+        // Add event listeners to action buttons
+        withdrawalsTableBody
+          .querySelectorAll(".action-btn.view")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const withdrawalId = btn.getAttribute("data-withdrawal-id");
+              viewWithdrawal(withdrawalId);
+            });
+          });
+
+        withdrawalsTableBody
+          .querySelectorAll(".action-btn.approve")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const withdrawalId = btn.getAttribute("data-withdrawal-id");
+              approveWithdrawal(withdrawalId);
+            });
+          });
+
+        withdrawalsTableBody
+          .querySelectorAll(".action-btn.reject")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const withdrawalId = btn.getAttribute("data-withdrawal-id");
+              rejectWithdrawal(withdrawalId);
+            });
+          });
+      }
+
+      // Update recharges table
+      function updateRechargesTable() {
+        // Apply filters
+        const searchTerm = rechargeSearchInput.value.toLowerCase();
+        const statusFilter = rechargeStatusFilter.value;
+
+        filteredRecharges = allRecharges.filter((recharge) => {
+          const matchesSearch =
+            recharge.userId.toLowerCase().includes(searchTerm) ||
+            (recharge.senderName &&
+              recharge.senderName.toLowerCase().includes(searchTerm));
+          const matchesStatus =
+            statusFilter === "all" || recharge.status === statusFilter;
+          return matchesSearch && matchesStatus;
+        });
+
+        // Sort by date (newest first)
+        filteredRecharges.sort((a, b) => b.createdAt - a.createdAt);
+
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredRecharges.length / itemsPerPage);
+        const startIndex = (currentRechargePage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const rechargesToShow = filteredRecharges.slice(startIndex, endIndex);
+
+        // Update table
+        rechargesTableBody.innerHTML = "";
+
+        if (rechargesToShow.length === 0) {
+          rechargesTableBody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center;">No recharge requests found</td>
+            </tr>
+          `;
+        } else {
+          rechargesToShow.forEach((recharge) => {
+            const row = document.createElement("tr");
+
+            let statusClass = "";
+            if (recharge.status === "pending") statusClass = "status-pending";
+            else if (recharge.status === "approved")
+              statusClass = "status-approved";
+            else if (recharge.status === "rejected")
+              statusClass = "status-rejected";
+
+            row.innerHTML = `
+              <td>${recharge.userId}</td>
+              <td>₦${formatNumber(recharge.amount)}</td>
+              <td>${recharge.senderName}</td>
+              <td>${recharge.senderAccount}</td>
+              <td><span class="status-badge ${statusClass}">${
+              recharge.status
+            }</span></td>
+              <td>${formatDate(recharge.createdAt)}</td>
+              <td>
+                <div class="table-actions">
+                  <button class="action-btn view" data-recharge-id="${
+                    recharge.id
+                  }" title="View Details">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  ${
+                    recharge.status === "pending"
+                      ? `
+                    <button class="action-btn approve" data-recharge-id="${recharge.id}" title="Approve">
+                      <i class="fas fa-check"></i>
+                    </button>
+                    <button class="action-btn reject" data-recharge-id="${recharge.id}" title="Reject">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  `
+                      : ""
+                  }
+                </div>
+              </td>
+            `;
+
+            rechargesTableBody.appendChild(row);
+          });
+        }
+
+        // Update pagination
+        updatePagination(
+          rechargesPagination,
+          totalPages,
+          currentRechargePage,
+          (page) => {
+            currentRechargePage = page;
+            updateRechargesTable();
+          }
+        );
+
+        // Add event listeners to action buttons
+        rechargesTableBody
+          .querySelectorAll(".action-btn.view")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const rechargeId = btn.getAttribute("data-recharge-id");
+              viewRecharge(rechargeId);
+            });
+          });
+
+        rechargesTableBody
+          .querySelectorAll(".action-btn.approve")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const rechargeId = btn.getAttribute("data-recharge-id");
+              approveRecharge(rechargeId);
+            });
+          });
+
+        rechargesTableBody
+          .querySelectorAll(".action-btn.reject")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const rechargeId = btn.getAttribute("data-recharge-id");
+              rejectRecharge(rechargeId);
+            });
+          });
+      }
+
+      // Update investments table
+      function updateInvestmentsTable() {
+        // Apply filters
+        const searchTerm = investmentSearchInput.value.toLowerCase();
+        const packageFilter = investmentPackageFilter.value;
+
+        filteredInvestments = allInvestments.filter((investment) => {
+          const matchesSearch =
+            investment.userId.toLowerCase().includes(searchTerm) ||
+            investment.packageName.toLowerCase().includes(searchTerm);
+          const matchesPackage =
+            packageFilter === "all" || investment.packageId === packageFilter;
+          return matchesSearch && matchesPackage;
+        });
+
+        // Sort by date (newest first)
+        filteredInvestments.sort((a, b) => b.startDate - a.startDate);
+
+        // Calculate pagination
+        const totalPages = Math.ceil(filteredInvestments.length / itemsPerPage);
+        const startIndex = (currentInvestmentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const investmentsToShow = filteredInvestments.slice(
+          startIndex,
+          endIndex
+        );
+
+        // Update table
+        investmentsTableBody.innerHTML = "";
+
+        if (investmentsToShow.length === 0) {
+          investmentsTableBody.innerHTML = `
+            <tr>
+              <td colspan="7" style="text-align: center;">No investments found</td>
+            </tr>
+          `;
+        } else {
+          investmentsToShow.forEach((investment) => {
+            const row = document.createElement("tr");
+
+            let statusClass = "";
+            if (investment.status === "active") statusClass = "status-active";
+            else if (investment.status === "completed")
+              statusClass = "status-completed";
+
+            row.innerHTML = `
+              <td>${investment.userId}</td>
+              <td>${investment.packageName}</td>
+              <td>₦${formatNumber(investment.amount)}</td>
+              <td>₦${formatNumber(investment.dailyIncome)}</td>
+              <td>${investment.daysCompleted} / 45</td>
+              <td>${formatDate(investment.startDate)}</td>
+              <td><span class="status-badge ${statusClass}">${
+              investment.status
+            }</span></td>
+            `;
+
+            investmentsTableBody.appendChild(row);
+          });
+        }
+
+        // Update pagination
+        updatePagination(
+          investmentsPagination,
+          totalPages,
+          currentInvestmentPage,
+          (page) => {
+            currentInvestmentPage = page;
+            updateInvestmentsTable();
+          }
+        );
+      }
+
+      // Update gift codes table
+      function updateGiftCodesTable() {
+        giftCodesTableBody.innerHTML = "";
+
+        if (allGiftCodes.length === 0) {
+          giftCodesTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center;">No gift codes found</td>
+            </tr>
+          `;
+        } else {
+          allGiftCodes.forEach((giftCode) => {
+            const row = document.createElement("tr");
+
+            row.innerHTML = `
+              <td>${giftCode.code}</td>
+              <td>₦${formatNumber(giftCode.amount)}</td>
+              <td>${giftCode.redemptions || 0}</td>
+              <td>${giftCode.maxRedemptions}</td>
+              <td>${
+                giftCode.createdAt ? formatDate(giftCode.createdAt) : "N/A"
+              }</td>
+              <td>
+                <div class="table-actions">
+                  <button class="action-btn delete" data-gift-code-id="${
+                    giftCode.id
+                  }" title="Delete Gift Code">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            `;
+
+            giftCodesTableBody.appendChild(row);
+          });
+        }
+
+        // Add event listeners to action buttons
+        giftCodesTableBody
+          .querySelectorAll(".action-btn.delete")
+          .forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const giftCodeId = btn.getAttribute("data-gift-code-id");
+              confirmDeleteGiftCode(giftCodeId);
+            });
+          });
+      }
+
+      // Update pagination
+      function updatePagination(
+        paginationElement,
+        totalPages,
+        currentPage,
+        callback
+      ) {
+        paginationElement.innerHTML = "";
+
+        // Previous button
+        const prevBtn = document.createElement("button");
+        prevBtn.className = `page-btn ${currentPage === 1 ? "disabled" : ""}`;
+        prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+        if (currentPage > 1) {
+          prevBtn.addEventListener("click", () => callback(currentPage - 1));
+        }
+        paginationElement.appendChild(prevBtn);
+
+        // Page buttons
+        const maxButtons = 5;
+        const startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        const endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+        for (let i = startPage; i <= endPage; i++) {
+          const pageBtn = document.createElement("button");
+          pageBtn.className = `page-btn ${i === currentPage ? "active" : ""}`;
+          pageBtn.textContent = i;
+          pageBtn.addEventListener("click", () => callback(i));
+          paginationElement.appendChild(pageBtn);
+        }
+
+        // Next button
+        const nextBtn = document.createElement("button");
+        nextBtn.className = `page-btn ${
+          currentPage === totalPages ? "disabled" : ""
+        }`;
+        nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+        if (currentPage < totalPages) {
+          nextBtn.addEventListener("click", () => callback(currentPage + 1));
+        }
+        paginationElement.appendChild(nextBtn);
+      }
+
+      // View user
+      function viewUser(userId) {
+        const user = allUsers.find((u) => u.id === userId);
+        if (!user) return;
+
+        currentViewUser = user;
+
+        // Populate user details
+        document.getElementById("viewUserPhone").textContent = user.phone;
+        document.getElementById(
+          "viewUserBalance"
+        ).textContent = `₦${formatNumber(user.balance || 0)}`;
+        document.getElementById("viewUserReferrals").textContent =
+          user.referrals || 0;
+        document.getElementById("viewUserStatus").textContent =
+          user.status || "active";
+        document.getElementById("viewUserJoined").textContent = user.createdAt
+          ? formatDate(user.createdAt)
+          : "N/A";
+
+        // Populate user investments
+        userInvestmentsTableBody.innerHTML = "";
+
+        if (!user.investments || Object.keys(user.investments).length === 0) {
+          userInvestmentsTableBody.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align: center;">No investments found</td>
+            </tr>
+          `;
+        } else {
+          Object.values(user.investments).forEach((investment) => {
+            const row = document.createElement("tr");
+
+            let statusClass = "";
+            if (investment.status === "active") statusClass = "status-active";
+            else if (investment.status === "completed")
+              statusClass = "status-completed";
+
+            row.innerHTML = `
+              <td>${investment.packageName}</td>
+              <td>₦${formatNumber(investment.amount)}</td>
+              <td>₦${formatNumber(investment.dailyIncome)}</td>
+              <td>${investment.daysCompleted} / 45</td>
+              <td><span class="status-badge ${statusClass}">${
+              investment.status
+            }</span></td>
+            `;
+
+            userInvestmentsTableBody.appendChild(row);
+          });
+        }
+
+        // Show modal
+        showModal("userViewModal");
+      }
+
+      // Edit user
+      function editUser(userId) {
+        const user = allUsers.find((u) => u.id === userId);
+        if (!user) return;
+
+        // Populate form
+        document.getElementById("editUserId").value = user.id;
+        document.getElementById("editUserPhone").value = user.phone;
+        document.getElementById("editUserBalance").value = user.balance || 0;
+        document.getElementById("editUserReferrals").value =
+          user.referrals || 0;
+        document.getElementById("editUserStatus").value =
+          user.status || "active";
+
+        // Show modal
+        showModal("userEditModal");
+      }
+
+      // Save user changes
+      async function saveUserChanges() {
+        const userId = document.getElementById("editUserId").value;
+        const balance = parseFloat(
+          document.getElementById("editUserBalance").value
+        );
+        const referrals = parseInt(
+          document.getElementById("editUserReferrals").value
+        );
+        const status = document.getElementById("editUserStatus").value;
+
+        if (isNaN(balance) || balance < 0) {
+          showToast("error", "Error", "Please enter a valid balance amount.");
+          return;
+        }
+
+        if (isNaN(referrals) || referrals < 0) {
+          showToast("error", "Error", "Please enter a valid referrals count.");
+          return;
+        }
+
+        showLoading();
+
+        try {
+          const user = allUsers.find((u) => u.id === userId);
+          if (!user) throw new Error("User not found");
+
+          const updates = {};
+          updates[`users/${user.phone}/balance`] = balance;
+          updates[`users/${user.phone}/referrals`] = referrals;
+          updates[`users/${user.phone}/status`] = status;
+
+          await database.ref().update(updates);
+
+          hideModal("userEditModal");
+          showToast(
+            "success",
+            "Success",
+            "User information updated successfully."
+          );
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error updating user:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to update user information. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Add new user
+      async function addNewUser() {
+        const phone = document.getElementById("newUserPhone").value.trim();
+        const password = document
+          .getElementById("newUserPassword")
+          .value.trim();
+        const balance = parseFloat(
+          document.getElementById("newUserBalance").value
+        );
+
+        // Validate inputs
+        if (!/^\d{11}$/.test(phone)) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid 11-digit phone number."
+          );
+          return;
+        }
+
+        if (password.length < 6) {
+          showToast(
+            "error",
+            "Error",
+            "Password must be at least 6 characters."
+          );
+          return;
+        }
+
+        if (isNaN(balance) || balance < 0) {
+          showToast("error", "Error", "Please enter a valid balance amount.");
+          return;
+        }
+
+        showLoading();
+
+        try {
+          // Check if user already exists
+          const userRef = database.ref("users/" + phone);
+          const snapshot = await userRef.once("value");
+
+          if (snapshot.exists()) {
+            showToast(
+              "error",
+              "Error",
+              "This phone number is already registered."
+            );
+            hideLoading();
+            return;
+          }
+
+          // Create new user
+          const userData = {
+            phone: phone,
+            password: password,
+            balance: balance,
+            referrals: 0,
+            status: "active",
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            investments: {},
+          };
+
+          await userRef.set(userData);
+
+          hideModal("addUserModal");
+          showToast("success", "Success", "New user added successfully.");
+
+          // Reset form
+          document.getElementById("addUserForm").reset();
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error adding user:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to add new user. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Confirm delete user
+      function confirmDeleteUser(userId) {
+        const user = allUsers.find((u) => u.id === userId);
+        if (!user) return;
+
+        currentDeleteItem = user;
+        currentDeleteType = "user";
+        document.getElementById(
+          "deleteConfirmMessage"
+        ).textContent = `Are you sure you want to delete user ${user.phone}? This action cannot be undone.`;
+
+        showModal("deleteConfirmModal");
+      }
+
+      // Delete user
+      async function deleteUser() {
+        if (!currentDeleteItem || currentDeleteType !== "user") return;
+
+        showLoading();
+
+        try {
+          await database.ref(`users/${currentDeleteItem.phone}`).remove();
+
+          hideModal("deleteConfirmModal");
+          showToast("success", "Success", "User deleted successfully.");
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error deleting user:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to delete user. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // View withdrawal
+      function viewWithdrawal(withdrawalId) {
+        const withdrawal = allWithdrawals.find((w) => w.id === withdrawalId);
+        if (!withdrawal) return;
+
+        currentWithdrawal = withdrawal;
+
+        // Populate withdrawal details
+        document.getElementById("viewWithdrawalUser").textContent =
+          withdrawal.userId;
+        document.getElementById(
+          "viewWithdrawalAmount"
+        ).textContent = `₦${formatNumber(withdrawal.amount)}`;
+        document.getElementById("viewWithdrawalBank").textContent =
+          withdrawal.bank;
+        document.getElementById("viewWithdrawalAccount").textContent =
+          withdrawal.accountNumber;
+        document.getElementById("viewWithdrawalName").textContent =
+          withdrawal.accountName;
+
+        let statusClass = "";
+        if (withdrawal.status === "pending") statusClass = "status-pending";
+        else if (withdrawal.status === "approved")
+          statusClass = "status-approved";
+        else if (withdrawal.status === "rejected")
+          statusClass = "status-rejected";
+
+        document.getElementById(
+          "viewWithdrawalStatus"
+        ).innerHTML = `<span class="status-badge ${statusClass}">${withdrawal.status}</span>`;
+
+        document.getElementById("viewWithdrawalDate").textContent = formatDate(
+          withdrawal.createdAt
+        );
+
+        // Show/hide action buttons based on status
+        const actionFooter = document.getElementById("withdrawalActionFooter");
+        if (withdrawal.status === "pending") {
+          actionFooter.innerHTML = `
+            <button class="btn btn-outline" data-dismiss="modal">Close</button>
+            <button class="btn btn-danger" id="rejectWithdrawalBtn">Reject</button>
+            <button class="btn btn-success" id="approveWithdrawalBtn">Approve</button>
+          `;
+
+          // Add event listeners
+          document
+            .getElementById("approveWithdrawalBtn")
+            .addEventListener("click", () => {
+              approveWithdrawal(withdrawal.id);
+            });
+
+          document
+            .getElementById("rejectWithdrawalBtn")
+            .addEventListener("click", () => {
+              rejectWithdrawal(withdrawal.id);
+            });
+        } else {
+          actionFooter.innerHTML = `
+            <button class="btn btn-outline" data-dismiss="modal">Close</button>
+          `;
+        }
+
+        // Show modal
+        showModal("withdrawalViewModal");
+      }
+
+      // Approve withdrawal
+      async function approveWithdrawal(withdrawalId) {
+        const withdrawal = allWithdrawals.find((w) => w.id === withdrawalId);
+        if (!withdrawal) return;
+
+        showLoading();
+
+        try {
+          // Update withdrawal status
+          await database
+            .ref(`withdrawals/${withdrawal.id}/status`)
+            .set("approved");
+
+          hideModal("withdrawalViewModal");
+          showToast(
+            "success",
+            "Success",
+            "Withdrawal request approved successfully."
+          );
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error approving withdrawal:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to approve withdrawal. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Reject withdrawal
+      async function rejectWithdrawal(withdrawalId) {
+        const withdrawal = allWithdrawals.find((w) => w.id === withdrawalId);
+        if (!withdrawal) return;
+
+        showLoading();
+
+        try {
+          // Update withdrawal status
+          await database
+            .ref(`withdrawals/${withdrawal.id}/status`)
+            .set("rejected");
+
+          // Refund user's balance
+          const userRef = database.ref(`users/${withdrawal.userId}`);
+          const userSnapshot = await userRef.once("value");
+
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            const currentBalance = userData.balance || 0;
+            await userRef.update({
+              balance: currentBalance + withdrawal.amount,
+            });
+          }
+
+          hideModal("withdrawalViewModal");
+          showToast(
+            "success",
+            "Success",
+            "Withdrawal request rejected and funds returned to user."
+          );
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error rejecting withdrawal:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to reject withdrawal. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // View recharge
+      function viewRecharge(rechargeId) {
+        const recharge = allRecharges.find((r) => r.id === rechargeId);
+        if (!recharge) return;
+
+        currentRecharge = recharge;
+
+        // Populate recharge details
+        document.getElementById("viewRechargeUser").textContent =
+          recharge.userId;
+        document.getElementById(
+          "viewRechargeAmount"
+        ).textContent = `₦${formatNumber(recharge.amount)}`;
+        document.getElementById("viewRechargeSender").textContent =
+          recharge.senderName;
+        document.getElementById("viewRechargeAccount").textContent =
+          recharge.senderAccount;
+
+        let statusClass = "";
+        if (recharge.status === "pending") statusClass = "status-pending";
+        else if (recharge.status === "approved")
+          statusClass = "status-approved";
+        else if (recharge.status === "rejected")
+          statusClass = "status-rejected";
+
+        document.getElementById(
+          "viewRechargeStatus"
+        ).innerHTML = `<span class="status-badge ${statusClass}">${recharge.status}</span>`;
+
+        document.getElementById("viewRechargeDate").textContent = formatDate(
+          recharge.createdAt
+        );
+
+        // Show/hide action buttons based on status
+        const actionFooter = document.getElementById("rechargeActionFooter");
+        if (recharge.status === "pending") {
+          actionFooter.innerHTML = `
+            <button class="btn btn-outline" data-dismiss="modal">Close</button>
+            <button class="btn btn-danger" id="rejectRechargeBtn">Reject</button>
+            <button class="btn btn-success" id="approveRechargeBtn">Approve</button>
+          `;
+
+          // Add event listeners
+          document
+            .getElementById("approveRechargeBtn")
+            .addEventListener("click", () => {
+              approveRecharge(recharge.id);
+            });
+
+          document
+            .getElementById("rejectRechargeBtn")
+            .addEventListener("click", () => {
+              rejectRecharge(recharge.id);
+            });
+        } else {
+          actionFooter.innerHTML = `
+            <button class="btn btn-outline" data-dismiss="modal">Close</button>
+          `;
+        }
+
+        // Show modal
+        showModal("rechargeViewModal");
+      }
+
+      // Approve recharge
+      async function approveRecharge(rechargeId) {
+        const recharge = allRecharges.find((r) => r.id === rechargeId);
+        if (!recharge) return;
+
+        showLoading();
+
+        try {
+          // Update recharge status
+          await database.ref(`payments/${recharge.id}/status`).set("approved");
+
+          // Update user's balance
+          const userRef = database.ref(`users/${recharge.userId}`);
+          const userSnapshot = await userRef.once("value");
+
+          if (userSnapshot.exists()) {
+            const userData = userSnapshot.val();
+            const currentBalance = userData.balance || 0;
+            await userRef.update({ balance: currentBalance + recharge.amount });
+          }
+
+          hideModal("rechargeViewModal");
+          showToast(
+            "success",
+            "Success",
+            "Recharge request approved and user's balance updated."
+          );
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error approving recharge:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to approve recharge. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Reject recharge
+      async function rejectRecharge(rechargeId) {
+        const recharge = allRecharges.find((r) => r.id === rechargeId);
+        if (!recharge) return;
+
+        showLoading();
+
+        try {
+          // Update recharge status
+          await database.ref(`payments/${recharge.id}/status`).set("rejected");
+
+          hideModal("rechargeViewModal");
+          showToast(
+            "success",
+            "Success",
+            "Recharge request rejected successfully."
+          );
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error rejecting recharge:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to reject recharge. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Create gift code
+      async function createGiftCode() {
+        const code = newGiftCodeInput.value.trim().toUpperCase();
+        const amount = parseFloat(giftAmountInput.value);
+        const maxRedemptions = parseInt(maxRedemptionsInput.value);
+
+        // Validate inputs
+        if (!code) {
+          showToast("error", "Error", "Please enter a gift code.");
+          return;
+        }
+
+        if (isNaN(amount) || amount <= 0) {
+          showToast("error", "Error", "Please enter a valid amount.");
+          return;
+        }
+
+        if (isNaN(maxRedemptions) || maxRedemptions <= 0) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid maximum redemptions count."
+          );
+          return;
+        }
+
+        showLoading();
+
+        try {
+          // Check if gift code already exists
+          const giftCodeRef = database
+            .ref("giftCodes")
+            .orderByChild("code")
+            .equalTo(code);
+          const snapshot = await giftCodeRef.once("value");
+
+          if (snapshot.exists()) {
+            showToast("error", "Error", "This gift code already exists.");
+            hideLoading();
+            return;
+          }
+
+          // Create new gift code
+          const giftCodeData = {
+            code: code,
+            amount: amount,
+            maxRedemptions: maxRedemptions,
+            redemptions: 0,
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+          };
+
+          await database.ref("giftCodes").push(giftCodeData);
+
+          showToast("success", "Success", "Gift code created successfully.");
+
+          // Reset form
+          newGiftCodeInput.value = "";
+          giftAmountInput.value = "";
+          maxRedemptionsInput.value = "";
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error creating gift code:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to create gift code. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Confirm delete gift code
+      function confirmDeleteGiftCode(giftCodeId) {
+        const giftCode = allGiftCodes.find((g) => g.id === giftCodeId);
+        if (!giftCode) return;
+
+        currentDeleteItem = giftCode;
+        currentDeleteType = "giftCode";
+        document.getElementById(
+          "deleteConfirmMessage"
+        ).textContent = `Are you sure you want to delete gift code ${giftCode.code}? This action cannot be undone.`;
+
+        showModal("deleteConfirmModal");
+      }
+
+      // Delete gift code
+      async function deleteGiftCode() {
+        if (!currentDeleteItem || currentDeleteType !== "giftCode") return;
+
+        showLoading();
+
+        try {
+          await database.ref(`giftCodes/${currentDeleteItem.id}`).remove();
+
+          hideModal("deleteConfirmModal");
+          showToast("success", "Success", "Gift code deleted successfully.");
+
+          // Refresh data
+          await loadDashboardData();
+        } catch (error) {
+          console.error("Error deleting gift code:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to delete gift code. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Save settings
+      async function saveSettings(e) {
+        e.preventDefault();
+
+        const platformName = document
+          .getElementById("platformName")
+          .value.trim();
+        const minWithdrawal = parseFloat(
+          document.getElementById("minWithdrawal").value
+        );
+        const maxWithdrawal = parseFloat(
+          document.getElementById("maxWithdrawal").value
+        );
+        const minRecharge = parseFloat(
+          document.getElementById("minRecharge").value
+        );
+        const maxRecharge = parseFloat(
+          document.getElementById("maxRecharge").value
+        );
+        const welcomeBonus = parseFloat(
+          document.getElementById("welcomeBonus").value
+        );
+        const referralBonus = parseFloat(
+          document.getElementById("referralBonus").value
+        );
+
+        // Validate inputs
+        if (!platformName) {
+          showToast("error", "Error", "Please enter a platform name.");
+          return;
+        }
+
+        if (isNaN(minWithdrawal) || minWithdrawal <= 0) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid minimum withdrawal amount."
+          );
+          return;
+        }
+
+        if (isNaN(maxWithdrawal) || maxWithdrawal <= minWithdrawal) {
+          showToast(
+            "error",
+            "Error",
+            "Maximum withdrawal must be greater than minimum withdrawal."
+          );
+          return;
+        }
+
+        if (isNaN(minRecharge) || minRecharge <= 0) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid minimum recharge amount."
+          );
+          return;
+        }
+
+        if (isNaN(maxRecharge) || maxRecharge <= minRecharge) {
+          showToast(
+            "error",
+            "Error",
+            "Maximum recharge must be greater than minimum recharge."
+          );
+          return;
+        }
+
+        if (isNaN(welcomeBonus) || welcomeBonus < 0) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid welcome bonus amount."
+          );
+          return;
+        }
+
+        if (isNaN(referralBonus) || referralBonus < 0 || referralBonus > 100) {
+          showToast(
+            "error",
+            "Error",
+            "Please enter a valid referral bonus percentage (0-100)."
+          );
+          return;
+        }
+
+        showLoading();
+
+        try {
+          // Save settings to database
+          const settingsData = {
+            platformName,
+            minWithdrawal,
+            maxWithdrawal,
+            minRecharge,
+            maxRecharge,
+            welcomeBonus,
+            referralBonus,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP,
+          };
+
+          await database.ref("settings").set(settingsData);
+
+          showToast("success", "Success", "Settings saved successfully.");
+        } catch (error) {
+          console.error("Error saving settings:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to save settings. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Change admin password
+      async function changeAdminPassword(e) {
+        e.preventDefault();
+
+        const currentPassword =
+          document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
+        const confirmPassword =
+          document.getElementById("confirmPassword").value;
+
+        // Validate inputs
+        if (!currentPassword) {
+          showToast("error", "Error", "Please enter your current password.");
+          return;
+        }
+
+        if (!newPassword) {
+          showToast("error", "Error", "Please enter a new password.");
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          showToast(
+            "error",
+            "Error",
+            "New password must be at least 6 characters."
+          );
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          showToast("error", "Error", "New passwords do not match.");
+          return;
+        }
+
+        showLoading();
+
+        try {
+          // Check current password
+          const adminRef = database.ref("admin");
+          const snapshot = await adminRef.once("value");
+
+          if (snapshot.exists()) {
+            const adminData = snapshot.val();
+
+            if (adminData.password !== currentPassword) {
+              showToast("error", "Error", "Current password is incorrect.");
+              hideLoading();
+              return;
+            }
+
+            // Update password
+            await adminRef.update({ password: newPassword });
+
+            showToast("success", "Success", "Password changed successfully.");
+
+            // Reset form
+            document.getElementById("adminPasswordForm").reset();
+          } else {
+            // Create admin account if it doesn't exist
+            await adminRef.set({
+              username: "admin",
+              password: newPassword,
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+            });
+
+            showToast(
+              "success",
+              "Success",
+              "Admin account created successfully."
+            );
+
+            // Reset form
+            document.getElementById("adminPasswordForm").reset();
+          }
+        } catch (error) {
+          console.error("Error changing password:", error);
+          showToast(
+            "error",
+            "Error",
+            "Failed to change password. Please try again."
+          );
+        } finally {
+          hideLoading();
+        }
+      }
+
+      // Event Listeners
+      document.addEventListener("DOMContentLoaded", () => {
+        // Load dashboard data
+        loadDashboardData();
+
+        // Toggle sidebar
+        toggleSidebarBtn.addEventListener("click", toggleSidebar);
+        mobileDrawerOverlay.addEventListener("click", toggleSidebar);
+
+        // Menu items
+        menuItems.forEach((item) => {
+          item.addEventListener("click", () => {
+            const section = item.getAttribute("data-section");
+            showSection(section);
+          });
+        });
+
+        // Close modals
+        document.querySelectorAll("[data-dismiss='modal']").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const modal = btn.closest(".modal-overlay");
+            hideModal(modal.id);
+          });
+        });
+
+        // Search and filter inputs
+        userSearchInput.addEventListener("input", updateUsersTable);
+        userStatusFilter.addEventListener("change", updateUsersTable);
+        withdrawalSearchInput.addEventListener("input", updateWithdrawalsTable);
+        withdrawalStatusFilter.addEventListener(
+          "change",
+          updateWithdrawalsTable
+        );
+        rechargeSearchInput.addEventListener("input", updateRechargesTable);
+        rechargeStatusFilter.addEventListener("change", updateRechargesTable);
+        investmentSearchInput.addEventListener("input", updateInvestmentsTable);
+        investmentPackageFilter.addEventListener(
+          "change",
+          updateInvestmentsTable
+        );
+
+        // Button actions
+        addUserBtn.addEventListener("click", () => showModal("addUserModal"));
+        saveUserBtn.addEventListener("click", saveUserChanges);
+        saveNewUserBtn.addEventListener("click", addNewUser);
+        editUserFromViewBtn.addEventListener("click", () => {
+          hideModal("userViewModal");
+          editUser(currentViewUser.id);
+        });
+        confirmDeleteBtn.addEventListener("click", () => {
+          if (currentDeleteType === "user") {
+            deleteUser();
+          } else if (currentDeleteType === "giftCode") {
+            deleteGiftCode();
+          }
+        });
+        createGiftCodeBtn.addEventListener("click", createGiftCode);
+        refreshDataBtn.addEventListener("click", loadDashboardData);
+
+        // Form submissions
+        settingsForm.addEventListener("submit", saveSettings);
+        adminPasswordForm.addEventListener("submit", changeAdminPassword);
+      });
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 992) {
+          sidebar.classList.remove("collapsed");
+          mainContent.classList.remove("expanded");
+          mobileDrawerOverlay.classList.remove("active");
+        }
+      });
+    </script>
+  </body>
+</html>
