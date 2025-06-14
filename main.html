@@ -617,6 +617,272 @@
           padding: 20px;
         }
       }
+
+      /* Enhanced Telegram Popup Styles */
+      .telegram-popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 99999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+
+      .telegram-popup-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .telegram-popup-container {
+        background: linear-gradient(135deg, #182848 0%, #4b6cb7 100%);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        position: relative;
+        transform: translateY(30px) scale(0.95);
+        transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .telegram-popup-overlay.active .telegram-popup-container {
+        transform: translateY(0) scale(1);
+      }
+
+      .telegram-popup-container::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(
+          circle,
+          rgba(0, 136, 204, 0.15) 0%,
+          transparent 70%
+        );
+        border-radius: 50%;
+      }
+
+      .telegram-popup-container::after {
+        content: "";
+        position: absolute;
+        bottom: -80px;
+        left: -80px;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(
+          circle,
+          rgba(0, 136, 204, 0.1) 0%,
+          transparent 70%
+        );
+        border-radius: 50%;
+      }
+
+      .close-popup-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .close-popup-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: rotate(90deg) scale(1.1);
+      }
+
+      .popup-header {
+        text-align: center;
+        margin-bottom: 25px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .popup-icon {
+        font-size: 4rem;
+        color: #0088cc;
+        margin-bottom: 15px;
+        animation: pulse 2s infinite;
+        text-shadow: 0 0 20px rgba(0, 136, 204, 0.5);
+      }
+
+      .popup-header h3 {
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .popup-content {
+        margin-bottom: 30px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .popup-content p {
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 25px;
+      }
+
+      .benefits-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .benefit-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 18px 20px;
+        border-radius: 12px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .benefit-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .benefit-item i {
+        color: #0088cc;
+        font-size: 1.3rem;
+        min-width: 25px;
+        text-align: center;
+      }
+
+      .benefit-item span {
+        color: white;
+        font-weight: 500;
+        font-size: 1rem;
+      }
+
+      .popup-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .btn-telegram-join {
+        background: linear-gradient(135deg, #0088cc 0%, #00aced 100%);
+        color: white;
+        padding: 18px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0, 136, 204, 0.4);
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-telegram-join:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 136, 204, 0.6);
+        background: linear-gradient(135deg, #0077b5 0%, #0095d9 100%);
+      }
+
+      .btn-remind-later {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 15px;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-remind-later:hover {
+        color: white;
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      /* Enhanced Animations */
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          text-shadow: 0 0 20px rgba(0, 136, 204, 0.5);
+        }
+        50% {
+          transform: scale(1.1);
+          text-shadow: 0 0 30px rgba(0, 136, 204, 0.8);
+        }
+        100% {
+          transform: scale(1);
+          text-shadow: 0 0 20px rgba(0, 136, 204, 0.5);
+        }
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 576px) {
+        .telegram-popup-container {
+          padding: 25px 20px;
+        }
+
+        .popup-header h3 {
+          font-size: 1.5rem;
+        }
+
+        .popup-content p {
+          font-size: 1rem;
+        }
+
+        .benefit-item {
+          padding: 15px;
+          gap: 12px;
+        }
+
+        .btn-telegram-join,
+        .btn-remind-later {
+          padding: 16px;
+        }
+
+        .popup-icon {
+          font-size: 3.5rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1138,6 +1404,150 @@
 
       // Initialize when DOM is loaded
       document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+    <!-- Telegram Join Popup -->
+    <div class="telegram-popup-overlay" id="telegramPopup">
+      <div class="telegram-popup-container">
+        <button
+          class="close-popup-btn"
+          id="closeTelegramPopup"
+          aria-label="Close popup"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+
+        <div class="popup-header">
+          <div class="popup-icon">
+            <i class="fab fa-telegram"></i>
+          </div>
+          <h3>Join Our VIP Investors Community!</h3>
+        </div>
+
+        <div class="popup-content">
+          <p>
+            Unlock exclusive benefits by joining our Telegram group where you'll
+            get:
+          </p>
+
+          <div class="benefits-list">
+            <div class="benefit-item">
+              <i class="fas fa-star"></i>
+              <span>Early access to new investment packages</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-headset"></i>
+              <span>Priority 24/7 customer support</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-chart-line"></i>
+              <span>Daily market analysis and tips</span>
+            </div>
+            <div class="benefit-item">
+              <i class="fas fa-bolt"></i>
+              <span>Instant payout notifications</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-footer">
+          <a
+            href="https://t.me/memorymat"
+            class="btn-telegram-join"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <i class="fab fa-telegram"></i> Join VIP Telegram Group
+          </a>
+          <button class="btn-remind-later" id="remindLaterBtn">
+            Maybe Later
+          </button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Enhanced Telegram Popup Functionality
+      const telegramPopup = document.getElementById("telegramPopup");
+      const closeTelegramPopup = document.getElementById("closeTelegramPopup");
+      const remindLaterBtn = document.getElementById("remindLaterBtn");
+
+      // Enhanced show popup logic
+      function showTelegramPopup() {
+        const popupShown = localStorage.getItem("telegramPopupShown");
+        const now = Date.now();
+        const lastShown = parseInt(
+          localStorage.getItem("telegramPopupLastShown") || 0
+        );
+        const threeDays = 3 * 24 * 60 * 60 * 1000; // 3 days in milliseconds
+
+        // Show if never shown or shown more than 3 days ago
+        if (!popupShown || now - lastShown > threeDays) {
+          // Wait for page to fully load
+          setTimeout(() => {
+            // Add small delay for better UX
+            setTimeout(() => {
+              telegramPopup.classList.add("active");
+              document.body.style.overflow = "hidden";
+              // Track that popup was shown
+              localStorage.setItem("telegramPopupShown", "true");
+              localStorage.setItem("telegramPopupLastShown", now.toString());
+            }, 1500); // 1.5 second delay after page load
+          }, 0);
+        }
+      }
+
+      // Enhanced close popup
+      function closePopup() {
+        telegramPopup.classList.remove("active");
+        document.body.style.overflow = "auto";
+
+        // Add closing animation class
+        telegramPopup.classList.add("closing");
+        setTimeout(() => {
+          telegramPopup.classList.remove("closing");
+        }, 400); // Match CSS transition duration
+      }
+
+      // Event listeners with enhanced UX
+      closeTelegramPopup.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closePopup();
+      });
+
+      remindLaterBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closePopup();
+        // Set reminder for 1 day later
+        localStorage.setItem(
+          "telegramPopupLastShown",
+          (Date.now() - 2 * 24 * 60 * 60 * 1000).toString()
+        );
+      });
+
+      // Close when clicking outside content
+      telegramPopup.addEventListener("click", (e) => {
+        if (e.target === telegramPopup) {
+          closePopup();
+        }
+      });
+
+      // Keyboard accessibility
+      document.addEventListener("keydown", (e) => {
+        if (telegramPopup.classList.contains("active") && e.key === "Escape") {
+          closePopup();
+        }
+      });
+
+      // Initialize popup after user data is loaded
+      function initTelegramPopup() {
+        // Only show if user is logged in
+        if (currentUser) {
+          showTelegramPopup();
+        }
+      }
+
+      // Call init after your existing initApp function
+      // Add this at the end of your existing initApp function:
+      setTimeout(initTelegramPopup, 1000); // Delay slightly to ensure everything is loaded
     </script>
   </body>
 </html>
