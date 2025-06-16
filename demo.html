@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Primary Meta Tags -->
+    <title>Super Mario - Smart Investments Demo</title>
+    <meta
+      name="title"
+      content="Super Mario - Smart Investments with Daily Returns"
+    />
+    <meta
+      name="description"
+      content="Invest with Super Mario and earn daily returns. Choose from our secure investment packages with up to 10x returns. Join thousands of happy investors today!"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+    />
+
+    <!-- Fonts and Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --primary-red: #e63946;
+        --dark-red: #d00000;
+        --white: #ffffff;
+        --light-gray: #f8f9fa;
+        --dark-gray: #333333;
+        --gold: #ffd700;
+        --light-red: rgba(230, 57, 70, 0.1);
+        --success-green: #27ae60;
+        --error-red: #e74c3c;
+        --opay-green: #01c38d;
+        --opay-dark: #00a876;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Montserrat", sans-serif;
+        background-color: var(--light-gray);
+        color: var(--dark-gray);
+        overflow-x: hidden;
+        min-height: 100vh;
+        padding-bottom: 80px;
+      }
+
+      /* Header Styles */
+      header {
+        background-color: var(--white);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        position: fixed;
+        width: 100%;
+        z-index: 1000;
+        padding: 15px 0;
+        transition: all 0.3s ease;
+      }
+
+      header.scrolled {
+        padding: 10px 0;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .logo img {
+        width: 40px;
+        height: 40px;
+        animation: bounce 2s infinite;
+      }
+
+      .logo h1 {
+        color: var(--primary-red);
+        font-weight: 800;
+        font-size: 1.8rem;
+      }
+
+      .demo-badge {
+        background: linear-gradient(45deg, var(--gold), #ffed4e);
+        color: var(--dark-gray);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        animation: pulse 2s infinite;
+        box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-red);
+        color: var(--white);
+        border: 2px solid var(--primary-red);
+      }
+
+      .btn-primary:hover {
+        background-color: var(--dark-red);
+        border-color: var(--dark-red);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+      }
+
+      .btn-primary:disabled {
+        background-color: #ccc;
+        border-color: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Main Content */
+      .main-content {
+        padding: 100px 0 30px;
+      }
+
+      /* Demo Instructions */
+      .demo-instructions {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        animation: slideInDown 0.8s ease-out;
+      }
+
+      .demo-instructions h3 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .demo-instructions ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .demo-instructions li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .demo-instructions li i {
+        color: var(--gold);
+        width: 20px;
+      }
+
+      /* User Info Section */
+      .user-info {
+        background-color: var(--white);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+        animation: fadeIn 0.8s ease-out;
+      }
+
+      .user-info h2 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+        color: var(--primary-red);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .user-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+      }
+
+      .user-detail-card {
+        background-color: var(--light-gray);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .user-detail-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .user-detail-card:hover::before {
+        left: 100%;
+      }
+
+      .user-detail-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(230, 57, 70, 0.1);
+      }
+
+      .user-detail-card h3 {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 10px;
+      }
+
+      .user-detail-card p {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+      }
+
+      .balance-amount {
+        color: var(--primary-red);
+        font-weight: 800;
+        animation: countUp 2s ease-out;
+      }
+
+      /* Packages Section */
+      .packages-section {
+        margin-bottom: 30px;
+      }
+
+      .section-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: var(--dark-gray);
+        position: relative;
+        display: inline-block;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        width: 50%;
+        height: 4px;
+        background-color: var(--primary-red);
+        bottom: -10px;
+        left: 0;
+        border-radius: 2px;
+        animation: expandWidth 1s ease-out 0.5s both;
+      }
+
+      .package-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+
+      .package-card {
+        background-color: var(--white);
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+        animation: slideInUp 0.6s ease-out;
+      }
+
+      .package-card:nth-child(even) {
+        animation-delay: 0.2s;
+      }
+
+      .package-card:nth-child(3n) {
+        animation-delay: 0.4s;
+      }
+
+      .package-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 40px rgba(230, 57, 70, 0.2);
+      }
+
+      .package-card.featured {
+        border: 3px solid var(--gold);
+        transform: scale(1.05);
+      }
+
+      .package-card.featured::before {
+        content: "POPULAR";
+        position: absolute;
+        top: 15px;
+        right: -30px;
+        background: var(--gold);
+        color: var(--dark-gray);
+        padding: 5px 40px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        transform: rotate(45deg);
+        z-index: 2;
+      }
+
+      .package-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 10px;
+        background: linear-gradient(45deg, var(--primary-red), var(--dark-red));
+        z-index: 2;
+      }
+
+      .package-header {
+        padding: 20px;
+        text-align: center;
+        border-bottom: 1px solid #eee;
+      }
+
+      .package-header h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-red);
+        margin-bottom: 10px;
+      }
+
+      .package-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark-gray);
+        margin-bottom: 5px;
+      }
+
+      .package-price span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #666;
+      }
+
+      .package-body {
+        padding: 20px;
+      }
+
+      .package-feature {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        animation: slideInLeft 0.5s ease-out;
+      }
+
+      .package-feature:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .package-feature:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .package-feature:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+
+      .package-feature i {
+        color: var(--primary-red);
+        margin-right: 10px;
+        font-size: 1.1rem;
+      }
+
+      .package-footer {
+        padding: 0 20px 20px;
+        text-align: center;
+      }
+
+      .btn-block {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 10px;
+      }
+
+      /* Timer Modal */
+      .timer-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      .timer-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        padding: 40px;
+        text-align: center;
+        color: white;
+        position: relative;
+        animation: slideUp 0.5s ease-out;
+      }
+
+      .timer-content h3 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+
+      .timer-display {
+        font-size: 4rem;
+        font-weight: 800;
+        margin: 30px 0;
+        font-family: "Courier New", monospace;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        animation: pulse 1s ease-in-out infinite;
+      }
+
+      .timer-info {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        opacity: 0.9;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 10px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 5px;
+        overflow: hidden;
+        margin: 20px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(45deg, var(--gold), #ffed4e);
+        width: 0%;
+        transition: width 1s ease;
+        animation: shimmer 2s infinite;
+      }
+
+      /* Opay Notification */
+      .opay-notification {
+        position: fixed;
+        top: -200px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        z-index: 99999;
+        width: 90%;
+        max-width: 400px;
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        border-left: 5px solid var(--opay-green);
+      }
+
+      .opay-notification.show {
+        top: 20px;
+        animation: notificationBounce 0.6s ease-out;
+      }
+
+      .opay-notification.hide {
+        top: -200px;
+        opacity: 0;
+      }
+
+      .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .notification-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .notification-icon img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .notification-text {
+        flex: 1;
+      }
+
+      .notification-text h4 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--dark-gray);
+        margin-bottom: 5px;
+      }
+
+      .notification-text p {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.4;
+      }
+
+      .amount-highlight {
+        color: var(--opay-green);
+        font-weight: 700;
+      }
+
+      /* Bottom Navigation */
+      .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--white);
+        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        padding: 10px 0;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+      }
+
+      .bottom-nav-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: var(--dark-gray);
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 20px;
+      }
+
+      .nav-item:hover,
+      .nav-item.active {
+        color: var(--primary-red);
+        transform: translateY(-5px);
+      }
+
+      .nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+      }
+
+      .nav-item span {
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      /* Loading Spinner */
+      .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--white);
+        animation: spin 1s ease-in-out infinite;
+        margin: 0 auto;
+      }
+
+      .btn-primary.loading .loading-spinner {
+        display: inline-block;
+      }
+
+      .btn-primary.loading span {
+        display: none;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slideInLeft {
+        from {
+          opacity: 0;
+          transform: translateX(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-20px);
+        }
+        60% {
+          transform: translateY(-10px);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes glow {
+        from {
+          text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+        to {
+          text-shadow: 0 0 30px rgba(255, 255, 255, 0.8),
+            0 0 40px rgba(255, 255, 255, 0.6);
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @keyframes countUp {
+        from {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes expandWidth {
+        from {
+          width: 0;
+        }
+        to {
+          width: 50%;
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          background-position: -200px 0;
+        }
+        100% {
+          background-position: 200px 0;
+        }
+      }
+
+      @keyframes notificationBounce {
+        0% {
+          transform: translateX(-50%) translateY(-100px) scale(0.8);
+          opacity: 0;
+        }
+        50% {
+          transform: translateX(-50%) translateY(10px) scale(1.05);
+          opacity: 1;
+        }
+        100% {
+          transform: translateX(-50%) translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        .main-content {
+          padding: 90px 0 30px;
+        }
+
+        .user-details {
+          grid-template-columns: 1fr;
+        }
+
+        .package-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .timer-display {
+          font-size: 3rem;
+        }
+
+        .timer-content {
+          padding: 30px 20px;
+        }
+
+        .demo-instructions {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .logo h1 {
+          font-size: 1.5rem;
+        }
+
+        .section-title {
+          font-size: 1.5rem;
+        }
+
+        .timer-display {
+          font-size: 2.5rem;
+        }
+
+        .timer-content h3 {
+          font-size: 1.5rem;
+        }
+
+        .opay-notification {
+          width: 95%;
+          padding: 15px;
+        }
+
+        .notification-content {
+          gap: 10px;
+        }
+
+        .notification-icon {
+          width: 40px;
+          height: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header id="header">
+      <div class="container header-container">
+        <div class="logo">
+          <img
+            src="https://cdn-icons-png.flaticon.com/128/871/871392.png"
+            alt="Super Mario Logo"
+          />
+          <h1>Super Mario</h1>
+        </div>
+        <!-- <div class="demo-badge"><i class="fas fa-play"></i> DEMO MODE</div> -->
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="container">
+        <!-- Demo Instructions -->
+        <!-- <section class="demo-instructions">
+          <h3><i class="fas fa-info-circle"></i> Instructions</h3>
+          <ul>
+            <li><i class="fas fa-check"></i> Your balance is ₦30,000</li>
+            <li>
+              <i class="fas fa-check"></i> Click "Invest Now" on the ₦30,000
+              package (Mario 4)
+            </li>
+            <li>
+              <i class="fas fa-check"></i> Watch the 24-hour timer simulation
+              (accelerated for demo)
+            </li>
+            <li>
+              <i class="fas fa-check"></i> See the Opay-style notification when
+              investment completes
+            </li>
+            <li>
+              <i class="fas fa-check"></i> Experience the full investment flow
+              with animations
+            </li>
+          </ul>
+        </section> -->
+
+        <!-- User Info Section -->
+        <section class="user-info">
+          <h2><i class="fas fa-user-circle"></i> Account Overview</h2>
+          <div class="user-details">
+            <div class="user-detail-card">
+              <h3>User ID</h3>
+              <p id="userId">090139765754</p>
+            </div>
+            <div class="user-detail-card">
+              <h3>Account Balance</h3>
+              <p class="balance-amount" id="userBalance">₦30,000</p>
+            </div>
+            <div class="user-detail-card">
+              <h3>Referrals</h3>
+              <p id="referralCount">5</p>
+            </div>
+            <div class="user-detail-card">
+              <h3>Active Investments</h3>
+              <p id="activeInvestments">0</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Packages Section -->
+        <section class="packages-section">
+          <h2 class="section-title">Investment Packages</h2>
+          <div class="package-grid" id="packageGrid">
+            <!-- Packages will be loaded here dynamically -->
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Timer Modal -->
+    <div class="timer-modal" id="timerModal">
+      <div class="timer-content">
+        <h3>Investment Processing</h3>
+        <div class="timer-info">
+          Your Mario 4 investment is being processed...
+        </div>
+        <div class="timer-display" id="timerDisplay">24:00:00</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <p>Please wait while your investment generates returns</p>
+      </div>
+    </div>
+
+    <!-- Opay Notification -->
+    <div class="opay-notification" id="opayNotification">
+      <div class="notification-content">
+        <div class="notification-icon">
+          <img
+            src="https://cdn.brandfetch.io/id2zsUpkDc/w/360/h/360/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1748298209409"
+            alt="Opay"
+          />
+        </div>
+        <div class="notification-text">
+          <h4>Payment Received</h4>
+          <p>
+            Supermario sent you <span class="amount-highlight">₦30,643</span>.
+            Get 6% bonus on opay airtime
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <div class="container bottom-nav-container">
+        <a href="#" class="nav-item active">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-wallet"></i>
+          <span>Withdraw</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-money-bill-wave"></i>
+          <span>Recharge</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-info-circle"></i>
+          <span>Info</span>
+        </a>
+        <a href="#" class="nav-item">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </div>
+    </nav>
+
+    <script>
+      // Demo Data
+      let demoBalance = 30000;
+      let activeInvestments = 0;
+      let isInvesting = false;
+
+      // Investment Packages Data
+      const packages = [
+        {
+          id: "mario1",
+          name: "Mario 1",
+          price: 3000,
+          dailyIncome: 500,
+          cycle: 45,
+          totalReturn: 22500,
+        },
+        {
+          id: "mario2",
+          name: "Mario 2",
+          price: 5000,
+          dailyIncome: 833,
+          cycle: 45,
+          totalReturn: 37485,
+        },
+        {
+          id: "mario3",
+          name: "Mario 3",
+          price: 10000,
+          dailyIncome: 1670,
+          cycle: 45,
+          totalReturn: 75150,
+        },
+        {
+          id: "mario4",
+          name: "Mario 4",
+          price: 30000,
+          dailyIncome: 5450,
+          cycle: 45,
+          totalReturn: 245250,
+          featured: true,
+        },
+        {
+          id: "mario5",
+          name: "Mario 5",
+          price: 80000,
+          dailyIncome: 14550,
+          cycle: 45,
+          totalReturn: 654750,
+        },
+        {
+          id: "mario6",
+          name: "Mario 6",
+          price: 150000,
+          dailyIncome: 29420,
+          cycle: 45,
+          totalReturn: 1323900,
+        },
+        {
+          id: "mario7",
+          name: "Mario 7",
+          price: 400000,
+          dailyIncome: 81632,
+          cycle: 45,
+          totalReturn: 3673440,
+        },
+        {
+          id: "mario8",
+          name: "Mario 8",
+          price: 650000,
+          dailyIncome: 135416,
+          cycle: 45,
+          totalReturn: 6093720,
+        },
+      ];
+
+      // DOM Elements
+      const userBalanceElement = document.getElementById("userBalance");
+      const activeInvestmentsElement =
+        document.getElementById("activeInvestments");
+      const packageGrid = document.getElementById("packageGrid");
+      const timerModal = document.getElementById("timerModal");
+      const timerDisplay = document.getElementById("timerDisplay");
+      const progressFill = document.getElementById("progressFill");
+      const opayNotification = document.getElementById("opayNotification");
+
+      // Format number with commas
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      // Update display
+      function updateDisplay() {
+        userBalanceElement.textContent = `₦${formatNumber(demoBalance)}`;
+        activeInvestmentsElement.textContent = activeInvestments;
+      }
+
+      // Load Packages
+      function loadPackages() {
+        packageGrid.innerHTML = "";
+        packages.forEach((pkg) => {
+          const packageCard = document.createElement("div");
+          packageCard.className = `package-card ${
+            pkg.featured ? "featured" : ""
+          }`;
+
+          const canInvest = demoBalance >= pkg.price && !isInvesting;
+          const buttonClass = canInvest ? "btn-primary" : "btn-primary";
+          const buttonDisabled = !canInvest ? "disabled" : "";
+
+          packageCard.innerHTML = `
+            <div class="package-header">
+              <h3>${pkg.name}</h3>
+              <div class="package-price">₦${formatNumber(pkg.price)}</div>
+            </div>
+            <div class="package-body">
+              <div class="package-feature">
+                <i class="fas fa-coins"></i>
+                <span>Daily Income: ₦${formatNumber(pkg.dailyIncome)}</span>
+              </div>
+              <div class="package-feature">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Cycle: ${pkg.cycle} Days</span>
+              </div>
+              <div class="package-feature">
+                <i class="fas fa-chart-line"></i>
+                <span>Total Return: ₦${formatNumber(pkg.totalReturn)}</span>
+              </div>
+            </div>
+            <div class="package-footer">
+              <button class="btn ${buttonClass} btn-block invest-btn" data-id="${
+            pkg.id
+          }" ${buttonDisabled}>
+                <i class="fas fa-arrow-right"></i> 
+                <span>${
+                  canInvest
+                    ? "Invest Now"
+                    : demoBalance < pkg.price
+                    ? "Insufficient Balance"
+                    : "Processing..."
+                }</span>
+              </button>
+            </div>
+          `;
+          packageGrid.appendChild(packageCard);
+        });
+
+        // Add event listeners to invest buttons
+        document.querySelectorAll(".invest-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            if (btn.disabled || isInvesting) return;
+
+            const packageId = btn.getAttribute("data-id");
+            const selectedPackage = packages.find(
+              (pkg) => pkg.id === packageId
+            );
+
+            if (packageId === "mario4") {
+              investInPackage(selectedPackage, btn);
+            } else {
+              showDemoMessage(
+                "This is a demo. Only Mario 4 package is available for demonstration."
+              );
+            }
+          });
+        });
+      }
+
+      // Show demo message
+      function showDemoMessage(message) {
+        const notification = document.createElement("div");
+        notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(45deg, #667eea, #764ba2);
+          color: white;
+          padding: 15px 20px;
+          border-radius: 10px;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+          z-index: 10000;
+          max-width: 300px;
+          animation: slideInRight 0.5s ease-out;
+        `;
+        notification.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-info-circle"></i>
+            <span>${message}</span>
+          </div>
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.style.animation = "slideOutRight 0.5s ease-out forwards";
+          setTimeout(() => notification.remove(), 500);
+        }, 3000);
+      }
+
+      // Invest in Package
+      function investInPackage(pkg, btn) {
+        if (demoBalance < pkg.price) {
+          showDemoMessage(
+            `Insufficient balance. You need ₦${formatNumber(
+              pkg.price - demoBalance
+            )} more.`
+          );
+          return;
+        }
+
+        isInvesting = true;
+
+        // Show loading state
+        btn.innerHTML = '<div class="loading-spinner"></div>';
+        btn.disabled = true;
+
+        // Simulate processing delay
+        setTimeout(() => {
+          // Deduct balance
+          demoBalance -= pkg.price;
+          activeInvestments++;
+          updateDisplay();
+
+          // Show timer modal
+          showTimerModal();
+
+          // Reload packages to update button states
+          loadPackages();
+        }, 1500);
+      }
+
+      // Show Timer Modal
+      function showTimerModal() {
+        timerModal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        // Start timer (accelerated for demo - 24 hours in 10 seconds)
+        let timeLeft = 1 * 60 * 60; // 24 hours in seconds
+        const totalTime = timeLeft;
+        const interval = 10000 / timeLeft; // 10 seconds total duration
+
+        const timer = setInterval(() => {
+          timeLeft -= 1;
+
+          // Update timer display
+          const hours = Math.floor(timeLeft / 3600);
+          const minutes = Math.floor((timeLeft % 3600) / 60);
+          const seconds = timeLeft % 60;
+
+          timerDisplay.textContent = `${hours
+            .toString()
+            .padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
+
+          // Update progress bar
+          const progress = ((totalTime - timeLeft) / totalTime) * 100;
+          progressFill.style.width = `${progress}%`;
+
+          if (timeLeft <= 0) {
+            clearInterval(timer);
+            completeInvestment();
+          }
+        }, interval);
+      }
+
+      // Complete Investment
+      function completeInvestment() {
+        // Hide timer modal
+        timerModal.style.display = "none";
+        document.body.style.overflow = "auto";
+
+        // Add returns to balance (demo: immediate return)
+        const returns = 30643; // As specified in the notification
+        demoBalance += returns;
+        activeInvestments--;
+        isInvesting = false;
+
+        updateDisplay();
+        loadPackages();
+
+        // Show Opay notification
+        setTimeout(() => {
+          showOpayNotification();
+        }, 500);
+      }
+
+      // Show Opay Notification
+      function showOpayNotification() {
+        opayNotification.classList.add("show");
+
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+          hideOpayNotification();
+        }, 5000);
+
+        // Click to hide
+        opayNotification.addEventListener("click", hideOpayNotification);
+      }
+
+      // Hide Opay Notification
+      function hideOpayNotification() {
+        opayNotification.classList.remove("show");
+        opayNotification.classList.add("hide");
+
+        setTimeout(() => {
+          opayNotification.classList.remove("hide");
+        }, 500);
+      }
+
+      // Initialize the app
+      function initApp() {
+        updateDisplay();
+        loadPackages();
+
+        // Header scroll effect
+        const header = document.getElementById("header");
+        window.addEventListener("scroll", () => {
+          if (window.scrollY > 50) {
+            header.classList.add("scrolled");
+          } else {
+            header.classList.remove("scrolled");
+          }
+        });
+
+        // Bottom nav active state
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            navItems.forEach((i) => i.classList.remove("active"));
+            item.classList.add("active");
+          });
+        });
+
+        // Add CSS animations for slide effects
+        const style = document.createElement("style");
+        style.textContent = `
+          @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+  </body>
+</html>
