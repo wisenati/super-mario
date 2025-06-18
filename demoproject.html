@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BIGDADDY - JAMB Subject Allocation System</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #6c5ce7;
+        --primary-dark: #5649c0;
+        --secondary: #00cec9;
+        --accent: #fd79a8;
+        --light: #f8f9fa;
+        --dark: #343a40;
+        --success: #00b894;
+        --warning: #fdcb6e;
+        --danger: #d63031;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        color: var(--dark);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 3rem;
+        animation: fadeInDown 1s ease;
+      }
+
+      .logo {
+        font-family: "Montserrat", sans-serif;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .logo i {
+        color: var(--accent);
+      }
+
+      .tagline {
+        color: var(--primary-dark);
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .system-name {
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: var(--transition);
+        animation: fadeInUp 0.8s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--primary-dark);
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background-color: #f8f9fa;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary);
+        background-color: white;
+        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .btn:hover {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+      }
+
+      .btn-block {
+        display: block;
+        width: 100%;
+      }
+
+      .btn-secondary {
+        background: var(--secondary);
+      }
+
+      .btn-secondary:hover {
+        background: #00b5b2;
+      }
+
+      .result-card {
+        display: none;
+        animation: fadeIn 1s ease;
+      }
+
+      .result-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+      }
+
+      .result-title {
+        color: var(--primary);
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .result-subtitle {
+        color: var(--dark);
+        opacity: 0.8;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 2rem;
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+      }
+
+      .user-avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 1.5rem;
+        border: 3px solid var(--primary);
+      }
+
+      .user-details h3 {
+        font-size: 1.3rem;
+        margin-bottom: 0.3rem;
+        color: var(--primary-dark);
+      }
+
+      .user-details p {
+        color: #666;
+      }
+
+      .subject-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .subject-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: var(--transition);
+        border-top: 4px solid var(--primary);
+      }
+
+      .subject-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      }
+
+      .subject-icon {
+        font-size: 2.5rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+
+      .subject-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--primary-dark);
+      }
+
+      .subject-desc {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 2rem;
+      }
+
+      .course-select {
+        position: relative;
+      }
+
+      .course-select select {
+        appearance: none;
+        padding-right: 2.5rem;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236c5ce7' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px;
+      }
+
+      .image-upload {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.5rem;
+        border: 2px dashed #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+        background-color: #f8f9fa;
+      }
+
+      .image-upload:hover {
+        border-color: var(--primary);
+        background-color: rgba(108, 92, 231, 0.05);
+      }
+
+      .image-upload i {
+        font-size: 2rem;
+        color: var(--primary);
+        margin-bottom: 1rem;
+      }
+
+      .image-upload p {
+        color: #666;
+        text-align: center;
+      }
+
+      .image-upload input {
+        display: none;
+      }
+
+      .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        display: none;
+        margin-top: 1rem;
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* Responsive styles */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .logo {
+          font-size: 2rem;
+        }
+
+        .system-name {
+          font-size: 1.4rem;
+        }
+
+        .card {
+          padding: 1.5rem;
+        }
+
+        .user-info {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .user-avatar {
+          margin-right: 0;
+          margin-bottom: 1rem;
+        }
+
+        .subject-list {
+          grid-template-columns: 1fr;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .btn {
+          width: 100%;
+        }
+      }
+
+      /* Loading spinner */
+      .spinner {
+        display: none;
+        width: 40px;
+        height: 40px;
+        margin: 2rem auto;
+        border: 4px solid rgba(108, 92, 231, 0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Confetti effect */
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: var(--accent);
+        opacity: 0;
+        top: 0;
+        left: 50%;
+        z-index: 1000;
+        animation: confetti 5s ease-in-out;
+      }
+
+      @keyframes confetti {
+        0% {
+          transform: translateY(0) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(100vh) rotate(720deg);
+          opacity: 0;
+        }
+      }
+
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+      }
+
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: var(--dark);
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 0.5rem;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.8rem;
+        font-weight: normal;
+      }
+
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      /* Course dropdown enhancements */
+      .course-dropdown {
+        position: relative;
+      }
+
+      .course-search {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        background-color: #f8f9fa;
+      }
+
+      .course-options {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        display: none;
+        position: absolute;
+        width: 100%;
+        z-index: 100;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .course-option {
+        padding: 0.8rem 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .course-option:hover {
+        background: #f0f0f0;
+      }
+
+      .course-option.highlight {
+        background: rgba(108, 92, 231, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <span>BIGDADDY</span>
+        </div>
+        <p class="tagline">Your trusted partner in educational success</p>
+        <h1 class="system-name">Automated JAMB Subject Allocation System</h1>
+      </header>
+
+      <div class="card form-card">
+        <h2
+          style="
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            text-align: center;
+          "
+        >
+          Student Information
+        </h2>
+
+        <form id="studentForm">
+          <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input
+              type="text"
+              id="firstName"
+              class="form-control"
+              required
+              placeholder="Enter your first name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input
+              type="text"
+              id="lastName"
+              class="form-control"
+              required
+              placeholder="Enter your last name"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" class="form-control" required />
+          </div>
+
+          <div class="form-group">
+            <label>Passport Photograph</label>
+            <div class="image-upload" id="imageUpload">
+              <i class="fas fa-camera"></i>
+              <p>Click to upload your passport photo</p>
+              <input type="file" id="photo" accept="image/*" required />
+              <img id="previewImage" class="preview-image" alt="Preview" />
+            </div>
+          </div>
+
+          <div class="form-group course-dropdown">
+            <label for="course">Select Your Desired Course</label>
+            <input
+              type="text"
+              id="courseSearch"
+              class="course-search"
+              placeholder="Search for a course..."
+            />
+            <div class="course-options" id="courseOptions"></div>
+            <input type="hidden" id="course" required />
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-block pulse"
+            style="margin-top: 1.5rem"
+          >
+            <i class="fas fa-magic"></i> Generate Subject Combination
+          </button>
+        </form>
+      </div>
+
+      <div class="card result-card" id="resultCard">
+        <div class="result-header">
+          <h2 class="result-title">Your JAMB Subject Combination</h2>
+          <p class="result-subtitle">
+            Recommended subjects for your selected course
+          </p>
+        </div>
+
+        <div class="user-info" id="userInfo">
+          <img
+            id="resultImage"
+            class="user-avatar"
+            src=""
+            alt="Student Photo"
+          />
+          <div class="user-details">
+            <h3 id="resultName"></h3>
+            <p id="resultDob"></p>
+            <p>
+              <strong>Selected Course:</strong> <span id="resultCourse"></span>
+            </p>
+          </div>
+        </div>
+
+        <div class="subject-list" id="subjectList">
+          <!-- Subjects will be inserted here by JavaScript -->
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-secondary" id="backButton">
+            <i class="fas fa-arrow-left"></i> Back to Form
+          </button>
+          <button class="btn" id="printButton">
+            <i class="fas fa-print"></i> Print
+          </button>
+        </div>
+      </div>
+
+      <div class="spinner" id="spinner"></div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Form elements
+        const form = document.getElementById("studentForm");
+        const resultCard = document.getElementById("resultCard");
+        const formCard = document.querySelector(".form-card");
+        const spinner = document.getElementById("spinner");
+        const backButton = document.getElementById("backButton");
+        const printButton = document.getElementById("printButton");
+        const imageUpload = document.getElementById("imageUpload");
+        const photoInput = document.getElementById("photo");
+        const previewImage = document.getElementById("previewImage");
+
+        // Course dropdown elements
+        const courseSearch = document.getElementById("courseSearch");
+        const courseOptions = document.getElementById("courseOptions");
+        const courseInput = document.getElementById("course");
+
+        // Result elements
+        const resultName = document.getElementById("resultName");
+        const resultDob = document.getElementById("resultDob");
+        const resultCourse = document.getElementById("resultCourse");
+        const resultImage = document.getElementById("resultImage");
+        const subjectList = document.getElementById("subjectList");
+        const userInfo = document.getElementById("userInfo");
+
+        // Courses data with their subject combinations
+        const courses = [
+          {
+            name: "Medicine and Surgery",
+            subjects: ["English Language", "Physics", "Chemistry", "Biology"],
+          },
+          {
+            name: "Law",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Computer Science",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Accounting",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Commerce/Accounting",
+            ],
+          },
+          {
+            name: "Business Administration",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Commerce/Business Studies",
+            ],
+          },
+          {
+            name: "Economics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Government/Geography",
+            ],
+          },
+          {
+            name: "Electrical Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Mechanical Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Civil Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Architecture",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry/Technical Drawing",
+            ],
+          },
+          {
+            name: "Mass Communication",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government/History",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Political Science",
+            subjects: [
+              "English Language",
+              "Government",
+              "History",
+              "Economics",
+            ],
+          },
+          {
+            name: "Sociology",
+            subjects: [
+              "English Language",
+              "Government/History",
+              "Economics",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Psychology",
+            subjects: [
+              "English Language",
+              "Biology",
+              "Mathematics",
+              "Economics/Government",
+            ],
+          },
+          {
+            name: "Biochemistry",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Microbiology",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Pharmacy",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Nursing",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Dentistry",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Agriculture",
+            subjects: [
+              "English Language",
+              "Biology",
+              "Chemistry",
+              "Agricultural Science",
+            ],
+          },
+          {
+            name: "Veterinary Medicine",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Mathematics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Physics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Chemistry",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Chemistry",
+              "Physics/Biology",
+            ],
+          },
+          {
+            name: "Geology",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Geography",
+            subjects: [
+              "English Language",
+              "Geography",
+              "Mathematics",
+              "Economics/Government",
+            ],
+          },
+          {
+            name: "History and International Studies",
+            subjects: [
+              "English Language",
+              "History",
+              "Government",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Linguistics",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government/History",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "English and Literary Studies",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government/History",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "French",
+            subjects: [
+              "English Language",
+              "French",
+              "Literature in English",
+              "Government/History",
+            ],
+          },
+          {
+            name: "Theatre Arts",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government/History",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Music",
+            subjects: [
+              "English Language",
+              "Music",
+              "Literature in English",
+              "Government/History",
+            ],
+          },
+          {
+            name: "Fine and Applied Arts",
+            subjects: [
+              "English Language",
+              "Fine Arts",
+              "Literature in English",
+              "Government/History",
+            ],
+          },
+          {
+            name: "Education and Biology",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Education and Chemistry",
+            subjects: [
+              "English Language",
+              "Chemistry",
+              "Mathematics",
+              "Physics",
+            ],
+          },
+          {
+            name: "Education and Mathematics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Education and Physics",
+            subjects: [
+              "English Language",
+              "Physics",
+              "Mathematics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Education and English",
+            subjects: [
+              "English Language",
+              "Literature in English",
+              "Government/History",
+              "Christian Religious Studies/Islamic Studies",
+            ],
+          },
+          {
+            name: "Education and Economics",
+            subjects: [
+              "English Language",
+              "Economics",
+              "Mathematics",
+              "Government/Geography",
+            ],
+          },
+          {
+            name: "Banking and Finance",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Commerce/Accounting",
+            ],
+          },
+          {
+            name: "Marketing",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Commerce/Business Studies",
+            ],
+          },
+          {
+            name: "Public Administration",
+            subjects: [
+              "English Language",
+              "Government",
+              "Economics",
+              "Commerce/Accounting",
+            ],
+          },
+          {
+            name: "International Relations",
+            subjects: [
+              "English Language",
+              "Government",
+              "History",
+              "Economics",
+            ],
+          },
+          {
+            name: "Insurance",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Commerce/Accounting",
+            ],
+          },
+          {
+            name: "Estate Management",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Economics",
+              "Geography",
+            ],
+          },
+          {
+            name: "Urban and Regional Planning",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Geography",
+              "Economics",
+            ],
+          },
+          {
+            name: "Quantity Surveying",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Surveying and Geoinformatics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Building Technology",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Food Science and Technology",
+            subjects: [
+              "English Language",
+              "Chemistry",
+              "Biology",
+              "Physics/Mathematics",
+            ],
+          },
+          {
+            name: "Fisheries and Aquaculture",
+            subjects: [
+              "English Language",
+              "Biology",
+              "Chemistry",
+              "Physics/Mathematics",
+            ],
+          },
+          {
+            name: "Forestry and Wildlife",
+            subjects: [
+              "English Language",
+              "Biology",
+              "Chemistry",
+              "Physics/Mathematics",
+            ],
+          },
+          {
+            name: "Human Anatomy",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Human Physiology",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Medical Laboratory Science",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Radiography",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Physiotherapy",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Optometry",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Statistics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Industrial Chemistry",
+            subjects: [
+              "English Language",
+              "Chemistry",
+              "Mathematics",
+              "Physics",
+            ],
+          },
+          {
+            name: "Industrial Physics",
+            subjects: [
+              "English Language",
+              "Physics",
+              "Mathematics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Industrial Mathematics",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Marine Biology",
+            subjects: ["English Language", "Biology", "Chemistry", "Physics"],
+          },
+          {
+            name: "Meteorology",
+            subjects: [
+              "English Language",
+              "Geography",
+              "Physics",
+              "Mathematics",
+            ],
+          },
+          {
+            name: "Petroleum Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Chemical Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Aeronautical Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Agricultural Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Metallurgical Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+          {
+            name: "Telecommunication Engineering",
+            subjects: [
+              "English Language",
+              "Mathematics",
+              "Physics",
+              "Chemistry",
+            ],
+          },
+        ];
+
+        // Subject icons mapping
+        const subjectIcons = {
+          "English Language": "fa-language",
+          Mathematics: "fa-square-root-alt",
+          Physics: "fa-atom",
+          Chemistry: "fa-flask",
+          Biology: "fa-dna",
+          "Literature in English": "fa-book-open",
+          Government: "fa-landmark",
+          History: "fa-history",
+          Geography: "fa-globe-africa",
+          Economics: "fa-chart-line",
+          Commerce: "fa-shopping-cart",
+          Accounting: "fa-calculator",
+          "Business Studies": "fa-briefcase",
+          "Christian Religious Studies": "fa-cross",
+          "Islamic Studies": "fa-mosque",
+          "Agricultural Science": "fa-tractor",
+          "Fine Arts": "fa-palette",
+          Music: "fa-music",
+          French: "fa-language",
+          "Technical Drawing": "fa-ruler-combined",
+        };
+
+        // Initialize course dropdown
+        function initCourseDropdown() {
+          // Populate course options
+          courses.forEach((course) => {
+            const option = document.createElement("div");
+            option.className = "course-option";
+            option.textContent = course.name;
+            option.dataset.value = course.name;
+            option.addEventListener("click", function () {
+              courseInput.value = this.dataset.value;
+              courseSearch.value = this.dataset.value;
+              courseOptions.style.display = "none";
+            });
+            courseOptions.appendChild(option);
+          });
+
+          // Handle search input
+          courseSearch.addEventListener("input", function () {
+            const searchTerm = this.value.toLowerCase();
+            const options = courseOptions.querySelectorAll(".course-option");
+
+            options.forEach((option) => {
+              const courseName = option.textContent.toLowerCase();
+              if (courseName.includes(searchTerm)) {
+                option.style.display = "block";
+              } else {
+                option.style.display = "none";
+              }
+            });
+
+            if (searchTerm.length > 0) {
+              courseOptions.style.display = "block";
+            } else {
+              courseOptions.style.display = "none";
+            }
+          });
+
+          // Show options when search is focused
+          courseSearch.addEventListener("focus", function () {
+            if (this.value.length > 0) {
+              courseOptions.style.display = "block";
+            }
+          });
+
+          // Hide options when clicking outside
+          document.addEventListener("click", function (e) {
+            if (
+              !courseSearch.contains(e.target) &&
+              !courseOptions.contains(e.target)
+            ) {
+              courseOptions.style.display = "none";
+            }
+          });
+
+          // Keyboard navigation
+          courseSearch.addEventListener("keydown", function (e) {
+            const options = courseOptions.querySelectorAll(
+              '.course-option[style="display: block;"], .course-option:not([style])'
+            );
+            let highlighted = courseOptions.querySelector(
+              ".course-option.highlight"
+            );
+
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              if (!highlighted) {
+                options[0]?.classList.add("highlight");
+              } else {
+                highlighted.classList.remove("highlight");
+                const next = highlighted.nextElementSibling;
+                if (next && next.style.display !== "none") {
+                  next.classList.add("highlight");
+                } else {
+                  options[0]?.classList.add("highlight");
+                }
+              }
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              if (highlighted) {
+                highlighted.classList.remove("highlight");
+                const prev = highlighted.previousElementSibling;
+                if (prev && prev.style.display !== "none") {
+                  prev.classList.add("highlight");
+                } else {
+                  options[options.length - 1]?.classList.add("highlight");
+                }
+              }
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              if (highlighted) {
+                courseInput.value = highlighted.dataset.value;
+                courseSearch.value = highlighted.dataset.value;
+                courseOptions.style.display = "none";
+              }
+            }
+          });
+        }
+
+        // Initialize image upload
+        function initImageUpload() {
+          imageUpload.addEventListener("click", function () {
+            photoInput.click();
+          });
+
+          photoInput.addEventListener("change", function () {
+            if (this.files && this.files[0]) {
+              const reader = new FileReader();
+
+              reader.onload = function (e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = "block";
+                imageUpload.querySelector("i").style.display = "none";
+                imageUpload.querySelector("p").style.display = "none";
+              };
+
+              reader.readAsDataURL(this.files[0]);
+            }
+          });
+        }
+
+        // Create confetti effect
+        function createConfetti() {
+          const colors = [
+            "#6c5ce7",
+            "#00cec9",
+            "#fd79a8",
+            "#fdcb6e",
+            "#00b894",
+          ];
+
+          for (let i = 0; i < 100; i++) {
+            const confetti = document.createElement("div");
+            confetti.className = "confetti";
+            confetti.style.left = Math.random() * 100 + "vw";
+            confetti.style.backgroundColor =
+              colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.width = Math.random() * 10 + 5 + "px";
+            confetti.style.height = Math.random() * 10 + 5 + "px";
+            confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
+            confetti.style.animationDelay = Math.random() * 2 + "s";
+
+            document.body.appendChild(confetti);
+
+            setTimeout(() => {
+              confetti.remove();
+            }, 5000);
+          }
+        }
+
+        // Display subjects for selected course
+        function displaySubjects(courseName) {
+          subjectList.innerHTML = "";
+
+          const course = courses.find((c) => c.name === courseName);
+          if (!course) return;
+
+          course.subjects.forEach((subject) => {
+            const subjectCard = document.createElement("div");
+            subjectCard.className = "subject-card";
+
+            const iconClass = subjectIcons[subject] || "fa-book";
+
+            subjectCard.innerHTML = `
+                        <div class="subject-icon">
+                            <i class="fas ${iconClass}"></i>
+                        </div>
+                        <h3 class="subject-name">${subject}</h3>
+                        <p class="subject-desc">Compulsory for ${courseName}</p>
+                    `;
+
+            subjectList.appendChild(subjectCard);
+          });
+        }
+
+        // Form submission
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // Validate form
+          if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+          }
+
+          // Show loading spinner
+          spinner.style.display = "block";
+          formCard.style.opacity = "0.5";
+          formCard.style.pointerEvents = "none";
+
+          // Simulate processing delay
+          setTimeout(() => {
+            // Get form values
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+            const dob = document.getElementById("dob").value;
+            const course = document.getElementById("course").value;
+
+            // Set result values
+            resultName.textContent = `${firstName} ${lastName}`;
+            resultDob.textContent = `Date of Birth: ${new Date(
+              dob
+            ).toLocaleDateString()}`;
+            resultCourse.textContent = course;
+
+            // Set image if uploaded
+            if (previewImage.src) {
+              resultImage.src = previewImage.src;
+            } else {
+              resultImage.src = "https://via.placeholder.com/80";
+            }
+
+            // Display subjects
+            displaySubjects(course);
+
+            // Hide spinner and show result
+            spinner.style.display = "none";
+            formCard.style.display = "none";
+            resultCard.style.display = "block";
+
+            // Animate result card
+            resultCard.style.animation = "fadeInUp 0.8s ease";
+            userInfo.style.animation = "fadeIn 1s ease";
+
+            // Create confetti effect
+            createConfetti();
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }, 1500);
+        });
+
+        // Back button
+        backButton.addEventListener("click", function () {
+          resultCard.style.display = "none";
+          formCard.style.display = "block";
+          formCard.style.opacity = "1";
+          formCard.style.pointerEvents = "auto";
+          formCard.style.animation = "fadeIn 0.5s ease";
+
+          // Scroll to top
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        // Print button
+        printButton.addEventListener("click", function () {
+          window.print();
+        });
+
+        // Initialize components
+        initCourseDropdown();
+        initImageUpload();
+      });
+    </script>
+  </body>
+</html>
